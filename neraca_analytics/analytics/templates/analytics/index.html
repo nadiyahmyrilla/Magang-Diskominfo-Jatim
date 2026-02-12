@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard PDRB</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <!-- Chart JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Dashboard PDRB</h1>
+    <span>Analisis Neraca Ekonomi Jawa Timur</span>
+  </div>
+
+  <!-- TOP GRID -->
+  <section class="top-grid">
+
+    <!-- KPI LEFT -->
+    <div class="kpi-left">
+      {% for kpi in kpi_data %}
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <small>{{ kpi.jenis }}</small>
+          <span class="badge">{{ kpi.keterangan }}</span>
+        </div>
+        <h2>{{ kpi.nilai }}</h2>
+        <p>vs tahun lalu</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- RADAR RIGHT -->
+    <div class="radar-card">
+      <h3>Stabilitas Indikator</h3>
+      <canvas id="radarChart"></canvas>
+    </div>
+  </section>
+
+
+  <!-- BAR CHART FULL WIDTH -->
+  <section class="full-chart">
+    <div class="card">
+      <h3>Pertumbuhan Indikator per Tahun</h3>
+      <canvas id="barChart"></canvas>
+    </div>
+  </section>
+
+
+  <!-- TABLE FULL WIDTH -->
+  <section class="table-section">
+    <div class="card table-card">
+      <h3>Status Indikator</h3>
+
+      <table>
+        <tr>
+          <th>Tahun</th>
+          <th>Indikator</th>
+          <th>Nilai</th>
+          <th>Stabilitas</th>
+          <th>Status</th>
+        </tr>
+
+        {% for item in indikator_stabil %}
+        <tr>
+          <td>{{ item.tahun }}</td>
+          <td>{{ item.indikator }}</td>
+          <td>{{ item.nilai|floatformat:2 }}</td>
+          <td>
+            {% if item.stabilitas %}
+              {{ item.stabilitas }} %
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            <span class="status {{ item.status|lower|cut:' ' }}">
+              {{ item.status }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+  </section>
+
+</div>
+
+
+<script>
+
+/* ================= RADAR ================= */
+const radarLabels = {{ radar_labels|safe }};
+const radarData = {{ radar_data|safe }};
+
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: radarLabels,
+    datasets: [{
+      label: 'Stabilitas',
+      data: radarData,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      r: {
+        beginAtZero: true
+      }
+    }
+  }
+});
+
+/* ================= BAR (ROUNDED) ================= */
+const barLabels = {{ customer_labels|safe }};
+const barDatasets = {{ customer_datasets|safe }};
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: barLabels,
+    datasets: barDatasets.map(ds => ({
+      ...ds,
+      borderRadius: 12,
+      borderSkipped: false
+    }))
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      x: { stacked: false },
+      y: { beginAtZero: true }
+    }
+  }
+});
+
+</script>
+
+</body>
+</html>
