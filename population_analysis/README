@@ -1,0 +1,137 @@
+# Analisis Kesenjangan Sosial Wilayah Jawa Timur  
+Berbasis Data Mining (KNN) dan Time Series
+
+Proyek ini merupakan aplikasi analisis **kesenjangan sosial dan ekonomi** pada wilayah **Provinsi Jawa Timur** berbasis **Python dan Django**.  
+Pendekatan yang digunakan adalah **data mining (K-Nearest Neighbor)** dengan dukungan **time series**, normalisasi data, dan evaluasi model untuk mendukung **pengambilan keputusan kebijakan berbasis data**.
+
+---
+
+## Tujuan
+- Mengukur tingkat kesenjangan sosial antar kabupaten/kota di Jawa Timur
+- Menggabungkan beberapa indikator sosial-ekonomi menjadi satu skor komposit
+- Mengelompokkan wilayah berdasarkan tingkat permasalahan
+- Memberikan interpretasi dan rekomendasi kebijakan secara akademik
+
+---
+
+## Indikator yang Digunakan
+- Garis Kemiskinan
+- Persentase Penduduk Miskin
+- Tingkat Pengangguran Terbuka (TPT)
+- Jumlah Penduduk
+- Laju Pertumbuhan Penduduk
+- Kepadatan Penduduk
+- Rasio Jenis Kelamin
+
+---
+
+## Teknologi
+- Python 3.x
+- Django
+- Pandas
+- NumPy
+- Scikit-learn
+- Matplotlib
+- Plotly
+- OpenPyXL
+
+---
+
+## Struktur Modul
+analytics/
+├── preprocessing.py # Pembersihan & normalisasi data
+├── analytics.py # Penggabungan seluruh indikator
+├── knn_model.py # Proses data mining (KNN)
+├── input_test.py # Uji input manual
+└── views.py # Pemanggilan hasil analisis
+
+
+---
+
+## Prinsip Akademik Pengembangan
+- `preprocessing.py` → pembersihan, normalisasi, dan time series
+- `knn_model.py` → seluruh proses data mining
+- `views.py` → hanya pemanggilan hasil (tanpa logika analisis)
+
+### Tahapan Data Mining
+| Tahap | File |
+|------|------|
+| Pembentukan Label | knn_model.py |
+| Split Data | knn_model.py |
+| Training KNN | knn_model.py |
+| Prediksi | knn_model.py |
+| Evaluasi Model | knn_model.py |
+| Uji Beberapa Nilai k | knn_model.py |
+
+---
+
+## Cara Menjalankan Aplikasi
+
+### 1. Aktifkan Virtual Environment
+```bash
+env\Scripts\activate
+2. Install Dependency
+pip install django pandas numpy scikit-learn matplotlib plotly openpyxl
+3. Jalankan Aplikasi
+python manage.py shell
+python manage.py runserver
+Menjalankan Analisis di Python Shell
+from analytics.preprocessing import load_raw_data, preprocess_timeseries, min_max_normalization, prepare_dataset
+from analytics.analytics import merge_all_indicators
+from analytics.knn_model import create_label, train_knn, compare_k, predict_new_data, keputusan_kebijakan
+from analytics.input_test import input_test
+Preprocessing Setiap Indikator
+df_asli, df_normal = prepare_dataset("Garis_Kemiskinan")
+df_asli, df_normal = prepare_dataset("Persentase_Penduduk_Miskin")
+df_asli, df_normal = prepare_dataset("TPT")
+df_asli, df_normal = prepare_dataset("Jumlah_Penduduk")
+df_asli, df_normal = prepare_dataset("Laju_Pertumbuhan_Penduduk")
+df_asli, df_normal = prepare_dataset("Kepadatan_Penduduk")
+df_asli, df_normal = prepare_dataset("Rasio_Jenis_Kelamin")
+Gabungkan Seluruh Indikator
+df_final = merge_all_indicators()
+Pembentukan Label dan Keputusan Kebijakan
+df_labeled = create_label(df_final)
+df_labeled["Keputusan"] = df_labeled["Kategori"].apply(keputusan_kebijakan)
+Training Model KNN
+result = train_knn(df_labeled, k=5)
+Cek dan Validasi Data
+df_asli.head()
+df_normal.head()
+df_final.head()
+df_final.describe()
+print(result)
+
+df_labeled[["Kabupaten/Kota", "Tahun", "Skor", "Keputusan"]].head()
+Evaluasi Model
+model, scaler, evaluasi = result
+evaluasi = result[2]
+
+print("Accuracy:", evaluasi["accuracy"])
+print("Confusion Matrix:\n", evaluasi["confusion_matrix"])
+print("Classification Report:\n", evaluasi["classification_report"])
+Perbandingan Nilai k
+df_k = compare_k(df_labeled)
+print(df_k)
+Uji Input Manual
+input_test()
+Interpretasi Akademik Kategori
+Kategori	Interpretasi
+Tinggi	Wilayah dengan tingkat permasalahan sosial-ekonomi tinggi; memerlukan prioritas kebijakan
+Agak Tinggi	Wilayah dengan kondisi di atas rata-rata; perlu intervensi terarah
+Sedang	Wilayah relatif stabil; kebijakan bersifat pemeliharaan
+Agak Rendah	Wilayah dengan kondisi cukup baik
+Rendah	Wilayah dengan kondisi sosial ekonomi terbaik
+Catatan
+Normalisasi menggunakan metode Min-Max Scaling
+
+Model KNN digunakan untuk klasifikasi tingkat kesenjangan
+
+Proyek ini dirancang sesuai kaidah penelitian akademik dan data mining
+
+Cocok untuk kebutuhan skripsi, jurnal ilmiah, atau konversi magang
+
+Author
+Nadiyah Myrilla
+Data Analyst | Data Mining | Socio-Economic Analysis
+
