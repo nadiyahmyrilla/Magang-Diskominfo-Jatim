@@ -105,7 +105,7 @@ print(result)
 df_labeled[["Kabupaten/Kota", "Tahun", "Skor", "Keputusan"]].head()
 Evaluasi Model
 model, scaler, evaluasi = result
-evaluasi = result[2]
+evaluasi = result[2]ko
 
 print("Accuracy:", evaluasi["accuracy"])
 print("Confusion Matrix:\n", evaluasi["confusion_matrix"])

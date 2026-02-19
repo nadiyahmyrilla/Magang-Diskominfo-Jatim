@@ -1,0 +1,185 @@
+/* ===== DASHBOARD ATAS ===== */
+.dashboard-top {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* KIRI : 4 CARD */
+.stat-grid {
+    width: 60%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.stat-card h6 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.stat-card h2 {
+    font-size: 42px;
+    font-weight: 700;
+    margin: 8px 0;
+}
+
+.stat-card span {
+    font-size: 13px;
+    color: #64748b;
+    display: block;
+    background: #e2e8f0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+/* KANAN : CHART */
+.chart-card {
+    width: 40%;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.chart-card h5 {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.chart-card span {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* ===== SECTION TABEL ===== */
+.table-section {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.table-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.table-actions input {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+/* TABLE */
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th,
+.custom-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+/* NAVBAR CONTAINER */
+.top-navbar {
+    background: #ffffff;
+    padding: 14px 24px;
+    border-radius: 40px;
+    width: fit-content;
+    margin: 20px auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+
+/* MENU */
+.nav-menu {
+    display: flex;
+    gap: 10px;
+    list-style: none;
+    align-items: center;
+}
+
+/* ITEM */
+.nav-item a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    color: #334155;
+    text-decoration: none;
+    transition: all .3s ease;
+    position: relative;
+}
+
+/* ICON */
+.nav-item .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all .3s ease;
+}
+
+/* TEXT */
+.nav-item span {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    max-width: 0;
+    overflow: hidden;
+    transition: all .3s ease;
+    opacity: 0;
+}
+
+/* HOVER / ACTIVE */
+.nav-item:hover a,
+.nav-item.active a {
+    background: #eaf1ff;
+}
+
+.nav-item:hover .icon,
+.nav-item.active .icon {
+    background: #2563eb;
+    color: #fff;
+}
+
+.nav-item:hover span,
+.nav-item.active span {
+    max-width: 220px;
+    opacity: 1;
+}
+
+/* SIMPLE ICON SIMULATION */
+.icon.home::before { content: "🏠"; }
+.icon.edit::before { content: "✏️"; }
+.icon.users::before { content: "👥"; }
+.icon.data::before { content: "📊"; }
+.icon.list::before { content: "📋"; }
+.icon.info::before { content: "ℹ️"; }
+.icon.monitor::before { content: "🖥️"; }
+.icon.book::before { content: "📘"; }
+.icon.chart::before { content: "📈"; }
