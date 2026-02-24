@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Infografis;
+use App\Models\LayananKonsultasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class InfografisController extends Controller
+class LayananKonsultasiController extends Controller
 {
     public function index(Request $request)
     {
@@ -16,7 +16,7 @@ class InfografisController extends Controller
         | QUERY DASAR
         |--------------------------------------------------------------------------
         */
-        $baseQuery = Infografis::query();
+        $baseQuery = LayananKonsultasi::query();
 
         /*
         |--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ class InfografisController extends Controller
         */
         if ($request->filled('search')) {
             $baseQuery->where(function ($q) use ($request) {
-                $q->where('periode', 'like', '%' . $request->search . '%')
+                $q->where('perangkat_daerah', 'like', '%' . $request->search . '%')
                 ->orWhere('tanggal_target', 'like', '%' . $request->search . '%');
             });
         }
@@ -72,7 +72,7 @@ class InfografisController extends Controller
         $statQuery = clone $baseQuery;
 
         if (!$adaFilter) {
-            $tanggalTerbaru = Infografis::max('tanggal_target');
+            $tanggalTerbaru = LayananKonsultasi::max('tanggal_target');
             $statQuery->whereDate('tanggal_target', $tanggalTerbaru);
         }
 
@@ -83,115 +83,105 @@ class InfografisController extends Controller
         | STATISTIK
         |--------------------------------------------------------------------------
         */
-        $jumlahSosial    = $dataStat->sum('sosial');
-        $jumlahEkonomi   = $dataStat->sum('ekonomi');
-        $jumlahPertanian = $dataStat->sum('pertanian');
-        $totalPeriode    = $dataStat->count();
-        $tanggalTerbaru  = $dataStat->max('tanggal_target');
+        $jumlahLakiLaki         = $dataStat->sum('laki_laki');
+        $jumlahPerempuan        = $dataStat->sum('perempuan');
+        $jumlahPerangkatDaerah  = $dataStat->count();
+        $jumlahTotal            = $jumlahLakiLaki + $jumlahPerempuan;
+        $tanggalTerbaru         = $dataStat->max('tanggal_target');
 
         /*
         |--------------------------------------------------------------------------
         | DATA GRAFIK
         |--------------------------------------------------------------------------
         */
-        $chartLabels     = $dataStat->pluck('tanggal_target');
-        $chartSosial     = $dataStat->pluck('sosial');
-        $chartEkonomi    = $dataStat->pluck('ekonomi');
-        $chartPertanian  = $dataStat->pluck('pertanian');
+        $chartLabels     = $dataStat->pluck('tanggal_target')->map(function ($date) {
+            return $date->format('Y-m-d');
+        });
+        $chartLakiLaki   = $dataStat->pluck('laki_laki');
+        $chartPerempuan  = $dataStat->pluck('perempuan');
 
-        return view('admin.infografis.index', compact(
+        return view('admin.layanan_konsultasi.index', compact(
             'data',
-            'jumlahSosial',
-            'jumlahEkonomi',
-            'jumlahPertanian',
-            'totalPeriode',
+            'jumlahLakiLaki',
+            'jumlahPerempuan',
+            'jumlahPerangkatDaerah',
+            'jumlahTotal',
             'tanggalTerbaru',
             'chartLabels',
-            'chartSosial',
-            'chartEkonomi',
-            'chartPertanian'
+            'chartLakiLaki',
+            'chartPerempuan'
         ));
     }
 
     public function create()
     {
-        return view('admin.infografis.create');
+        return view('admin.layanan_konsultasi.create');
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal_target' => 'required|date',
-            'periode'        => 'required|string|max:255',
-            'sosial'         => 'required|numeric|min:0',
-            'ekonomi'        => 'required|numeric|min:0',
-            'pertanian'      => 'required|numeric|min:0',
-            'link_bukti'     => 'nullable|url',
+            'tanggal_target'    => 'required|date',
+            'perangkat_daerah'  => 'required|string|max:250',
+            'laki_laki'         => 'required|numeric|min:0',
+            'perempuan'         => 'required|numeric|min:0',
         ], [
-            'sosial.numeric' => 'Jumlah sosial harus berupa angka.',
-            'sosial.min' => 'Jumlah sosial tidak boleh kurang dari 0.',
-            'ekonomi.numeric' => 'Jumlah ekonomi harus berupa angka.',
-            'ekonomi.min' => 'Jumlah ekonomi tidak boleh kurang dari 0.',
-            'pertanian.numeric' => 'Jumlah pertanian harus berupa angka.',
-            'pertanian.min' => 'Jumlah pertanian tidak boleh kurang dari 0.',
-            'link_bukti.url' => 'Link bukti harus berupa URL lengkap (http:// atau https://).'
+            'laki_laki.numeric' => 'Jumlah laki-laki harus berupa angka.',
+            'laki_laki.min' => 'Jumlah laki-laki tidak boleh kurang dari 0.',
+            'perempuan.numeric' => 'Jumlah perempuan harus berupa angka.',
+            'perempuan.min' => 'Jumlah perempuan tidak boleh kurang dari 0.'
         ]);
 
         try {
             $data = $request->all();
-            Log::info('Infografis: Inserting data', $data);
+            Log::info('LayananKonsultasi: Inserting data', $data);
             
-            $result = Infografis::create($data);
+            $result = LayananKonsultasi::create($data);
             
-            Log::info('Infografis: Data successfully saved with ID: ' . $result->id);
+            Log::info('LayananKonsultasi: Data successfully saved with ID: ' . $result->id);
             
-            return redirect()->route('admin.infografis.index')
-                ->with('success', 'Data infografis berhasil disimpan');
+            return redirect()->route('admin.layanan_konsultasi.index')
+                ->with('success', 'Data layanan konsultasi berhasil disimpan');
         } catch (\Exception $e) {
-            Log::error('Infografis: Failed to save data - ' . $e->getMessage());
+            Log::error('LayananKonsultasi: Failed to save data - ' . $e->getMessage());
             return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
     public function edit($id)
     {
-        $infografis = Infografis::findOrFail($id);
-        return view('admin.infografis.edit', compact('infografis'));
+        $layananKonsultasi = LayananKonsultasi::findOrFail($id);
+        return view('admin.layanan_konsultasi.edit', compact('layananKonsultasi'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'tanggal_target' => 'required|date',
-            'periode'        => 'required|string',
-            'sosial'         => 'required|numeric|min:0',
-            'ekonomi'        => 'required|numeric|min:0',
-            'pertanian'      => 'required|numeric|min:0',
-            'link_bukti'     => 'nullable|url',
+            'tanggal_target'    => 'required|date',
+            'perangkat_daerah'  => 'required|string',
+            'laki_laki'         => 'required|numeric|min:0',
+            'perempuan'         => 'required|numeric|min:0',
         ], [
-            'sosial.numeric' => 'Jumlah sosial harus berupa angka.',
-            'sosial.min' => 'Jumlah sosial tidak boleh kurang dari 0.',
-            'ekonomi.numeric' => 'Jumlah ekonomi harus berupa angka.',
-            'ekonomi.min' => 'Jumlah ekonomi tidak boleh kurang dari 0.',
-            'pertanian.numeric' => 'Jumlah pertanian harus berupa angka.',
-            'pertanian.min' => 'Jumlah pertanian tidak boleh kurang dari 0.',
-            'link_bukti.url' => 'Link bukti harus berupa URL lengkap (http:// atau https://).'
+            'laki_laki.numeric' => 'Jumlah laki-laki harus berupa angka.',
+            'laki_laki.min' => 'Jumlah laki-laki tidak boleh kurang dari 0.',
+            'perempuan.numeric' => 'Jumlah perempuan harus berupa angka.',
+            'perempuan.min' => 'Jumlah perempuan tidak boleh kurang dari 0.'
         ]);
 
         try {
-            $infografis = Infografis::findOrFail($id);
+            $layananKonsultasi = LayananKonsultasi::findOrFail($id);
             $data = $request->all();
             
-            Log::info('Infografis: Updating data with ID: ' . $id, $data);
+            Log::info('LayananKonsultasi: Updating data with ID: ' . $id, $data);
             
-            $infografis->update($data);
+            $layananKonsultasi->update($data);
             
-            Log::info('Infografis: Data with ID ' . $id . ' successfully updated');
+            Log::info('LayananKonsultasi: Data with ID ' . $id . ' successfully updated');
             
-            return redirect()->route('admin.infografis.index')
-                ->with('success', 'Data infografis berhasil diperbarui');
+            return redirect()->route('admin.layanan_konsultasi.index')
+                ->with('success', 'Data layanan konsultasi berhasil diperbarui');
         } catch (\Exception $e) {
-            Log::error('Infografis: Failed to update data with ID ' . $id . ' - ' . $e->getMessage());
+            Log::error('LayananKonsultasi: Failed to update data with ID ' . $id . ' - ' . $e->getMessage());
             return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
     }
@@ -199,11 +189,11 @@ class InfografisController extends Controller
     public function destroy($id)
     {
         try {
-            Infografis::findOrFail($id)->delete();
-            Log::info('Infografis: Data with ID ' . $id . ' successfully deleted');
+            LayananKonsultasi::findOrFail($id)->delete();
+            Log::info('LayananKonsultasi: Data with ID ' . $id . ' successfully deleted');
             return back()->with('success', 'Data berhasil dihapus');
         } catch (\Exception $e) {
-            Log::error('Infografis: Failed to delete data with ID ' . $id . ' - ' . $e->getMessage());
+            Log::error('LayananKonsultasi: Failed to delete data with ID ' . $id . ' - ' . $e->getMessage());
             return back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }

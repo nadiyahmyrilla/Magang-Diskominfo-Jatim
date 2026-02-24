@@ -1,3 +1,8 @@
+/* ===== BODY ===== */
+body {
+    background-color: #F4EFEB;
+}
+
 /* ===== DASHBOARD ATAS ===== */
 .dashboard-top {
     display: flex;
@@ -77,8 +82,32 @@
 }
 
 .table-actions {
+    padding: 4px 30px;
     display: flex;
+    align-items: center;
     gap: 12px;
+}
+
+/* FORM FILTER */
+.table-filter-form {
+    display: flex;
+    align-items: center;   /* ⬅️ sejajar vertikal */
+    gap: 10px;
+}
+
+/* INPUT DI FILTER */
+.table-filter-form input {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+
+/* TOMBOL TAMBAH DATA */
+.tambah-data-btn {
+    height: 38px;          /* ⬅️ samakan tinggi input */
+    display: flex;
+    align-items: center;
 }
 
 .table-actions input {
@@ -103,10 +132,10 @@
 /* NAVBAR CONTAINER */
 .top-navbar {
     background: #ffffff;
-    padding: 14px 24px;
+    padding: 7px 10px;
     border-radius: 40px;
     width: fit-content;
-    margin: 20px auto;
+    margin: 2px auto;
     box-shadow: 0 10px 30px rgba(0,0,0,.08);
 }
 
@@ -183,3 +212,99 @@
 .icon.monitor::before { content: "🖥️"; }
 .icon.book::before { content: "📘"; }
 .icon.chart::before { content: "📈"; }
+
+.konten-tematik-box {
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.08),
+        0 6px 14px rgba(0,0,0,0.05);
+}
+
+#calendarContainer {
+    background: #f8fafc;
+    border-radius: 18px;
+    padding: 16px;
+}
+
+#calendarDays .day {
+    background: #ffffff;
+}
+
+#calendarDays .day:hover {
+    background: #eef2f7;
+}
+
+.range-start,
+.range-end {
+    background: #dbeafe !important;
+    color: #1e3a8a;
+}
+
+.in-range {
+    background: #eff6ff !important;
+}
+
+.schedule-item {
+    background: #ffffff !important;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.portal-box-soft {
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow:
+        0 28px 70px rgba(0,0,0,0.08),
+        0 8px 18px rgba(0,0,0,0.05);
+}
+
+.portal-box-soft canvas {
+    background: #f9fafb;
+    border-radius: 16px;
+    padding: 12px;
+}
+
+.kepuasan-box-soft {
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow:
+        0 28px 70px rgba(0,0,0,0.08),
+        0 8px 18px rgba(0,0,0,0.05);
+}
+
+.kepuasan-box-soft canvas {
+    background: #f9fafb;
+    border-radius: 18px;
+    padding: 14px;
+}
+
+/* ================= ADMIN USER BUTTON ================= */
+
+/* Hilangkan panah dropdown */
+#userDropdown::after {
+    display: none !important;
+}
+
+/* Sembunyikan teks nama user */
+#userDropdown span {
+    display: none !important;
+}
+
+/* Rapikan tombol agar hanya ikon */
+#userDropdown {
+    padding: 6px 10px;
+    border-radius: 50%;
+}
+
+/* Perbesar ikon agar proporsional */
+#userDropdown i {
+    font-size: 1.2rem;
+}
+
+
+
+
+
+
+

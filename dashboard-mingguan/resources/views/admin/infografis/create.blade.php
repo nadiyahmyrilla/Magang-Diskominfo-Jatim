@@ -19,22 +19,34 @@
 
         <div class="mb-3">
             <label>Sosial</label>
-            <input type="text" name="sosial" class="form-control" required>
+            <input type="number" name="sosial" class="form-control @error('sosial') is-invalid @enderror" value="{{ old('sosial') }}" min="0" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            @error('sosial')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label>Ekonomi</label>
-            <input type="text" name="ekonomi" class="form-control" required>
+            <input type="number" name="ekonomi" class="form-control @error('ekonomi') is-invalid @enderror" value="{{ old('ekonomi') }}" min="0" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            @error('ekonomi')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label>Pertanian</label>
-            <input type="text" name="pertanian" class="form-control" required>
+            <input type="number" name="pertanian" class="form-control @error('pertanian') is-invalid @enderror" value="{{ old('pertanian') }}" min="0" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            @error('pertanian')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label>Link Bukti</label>
-            <input type="text" name="link_bukti" class="form-control">
+            <input type="text" name="link_bukti" class="form-control @error('link_bukti') is-invalid @enderror" value="{{ old('link_bukti') }}">
+            @error('link_bukti')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <button class="btn btn-success">Simpan</button>

@@ -2,54 +2,39 @@
 
 @section('content')
 
-{{-- Success/Error Messages --}}
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
 {{-- ================== SECTION ATAS ================== --}}
 <div class="dashboard-top mb-4">
 
     <div class="stat-grid">
         <div class="stat-card">
-            <h6>JUMLAH SOSIAL</h6>
-            <h2>{{ $jumlahSosial }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH VIEW</h6>
+            <h2>{{ $jumlahView }}</h2>
+            <span>{{ $tanggalTerbaru ? \Carbon\Carbon::parse($tanggalTerbaru)->format('Y-m-d') : '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH EKONOMI</h6>
-            <h2>{{ $jumlahEkonomi }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH DOWNLOAD</h6>
+            <h2>{{ $jumlahDownload }}</h2>
+            <span>{{ $tanggalTerbaru ? \Carbon\Carbon::parse($tanggalTerbaru)->format('Y-m-d') : '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH TOTAL PERIODE</h6>
-            <h2>{{ $totalPeriode }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH PERIODE</h6>
+            <h2>{{ $jumlahPeriode }}</h2>
+            <span>{{ $tanggalTerbaru ? \Carbon\Carbon::parse($tanggalTerbaru)->format('Y-m-d') : '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH PERTANIAN</h6>
-            <h2>{{ $jumlahPertanian }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH TOTAL</h6>
+            <h2>{{ $jumlahTotal }}</h2>
+            <span>{{ $tanggalTerbaru ? \Carbon\Carbon::parse($tanggalTerbaru)->format('Y-m-d') : '-' }}</span>
         </div>
     </div>
 
     <div class="chart-card">
-        <h5>Infografis</h5>
-        <span>{{ $tanggalTerbaru }}</span>
-        <canvas id="infografisChart" height="180"></canvas>
+        <h5>Penggunaan Data</h5>
+        <span>{{ $tanggalTerbaru ? \Carbon\Carbon::parse($tanggalTerbaru)->format('Y-m-d') : '-' }}</span>
+        <canvas id="penggunaanChart" height="180"></canvas>
     </div>
 </div>
 
@@ -57,16 +42,16 @@
 <div class="table-section">
 
     <div class="table-header align-items-start">
-        <h4 class="mb-0">Pengguna Data</h4>
+        <h4 class="mb-0">Data Penggunaan Data</h4>
 
         <div class="table-actions align-items-start">
-            <a href="{{ route('admin.infografis.create') }}" class="btn btn-primary tambah-data-btn">
+            <a href="{{ route('admin.penggunaan_data.create') }}" class="btn btn-primary tambah-data-btn">
                 Tambah Data +
             </a>
 
             {{-- ================= FORM FILTER ================= --}}
             <form method="GET"
-                  action="{{ route('admin.infografis.index') }}"
+                  action="{{ route('admin.penggunaan_data.index') }}"
                   class="row g-2 align-items-end">
 
                 <div class="col-md-4">
@@ -79,7 +64,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label fw-semibold">Tanggal Awal</label>
+                    <label class="form-label fw-semibold">Periode Awal</label>
                     <input type="date"
                            name="tanggal_awal"
                            class="form-control"
@@ -87,7 +72,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label fw-semibold">Tanggal Akhir</label>
+                    <label class="form-label fw-semibold">Periode Akhir</label>
                     <input type="date"
                            name="tanggal_akhir"
                            class="form-control"
@@ -99,7 +84,7 @@
                         Filter
                     </button>
 
-                    <a href="{{ route('admin.infografis.index') }}"
+                    <a href="{{ route('admin.penggunaan_data.index') }}"
                        class="btn btn-outline-danger w-100">
                         Reset
                     </a>
@@ -114,31 +99,23 @@
                 <tr>
                     <th>Periode</th>
                     <th>Tanggal</th>
-                    <th>Sosial</th>
-                    <th>Ekonomi</th>
-                    <th>Pertanian</th>
-                    <th>Link Bukti</th>
+                    <th>View</th>
+                    <th>Download</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($data as $row)
                 <tr>
-                    <td>{{ $row->periode }}</td>
-                    <td>{{ $row->tanggal_target }}</td>
-                    <td>{{ $row->sosial }}</td>
-                    <td>{{ $row->ekonomi }}</td>
-                    <td>{{ $row->pertanian }}</td>
+                    <td>{{ optional($row->periode_awal)->format('Y-m-d') }} - {{ optional($row->periode_akhir)->format('Y-m-d') }}</td>
+                    <td>{{ optional($row->tanggal)->format('Y-m-d') }}</td>
+                    <td>{{ $row->view }}</td>
+                    <td>{{ $row->download }}</td>
                     <td>
-                        @if ($row->link_bukti)
-                            <a href="{{ $row->link_bukti }}" target="_blank">Link</a>
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('admin.infografis.edit', $row->id) }}"
+                        <a href="{{ route('admin.penggunaan_data.edit', $row->id) }}"
                            class="btn btn-warning btn-sm">Edit</a>
 
-                        <form action="{{ route('admin.infografis.destroy', $row->id) }}"
+                        <form action="{{ route('admin.penggunaan_data.destroy', $row->id) }}"
                               method="POST"
                               class="d-inline">
                             @csrf
@@ -152,7 +129,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="5" class="text-center">
                         Data tidak ditemukan
                     </td>
                 </tr>
@@ -169,7 +146,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('infografisChart').getContext('2d');
+const ctx = document.getElementById('penggunaanChart').getContext('2d');
 
 new Chart(ctx, {
     type: 'line',
@@ -177,20 +154,14 @@ new Chart(ctx, {
         labels: @json($chartLabels),
         datasets: [
             {
-                label: 'Sosial',
-                data: @json($chartSosial),
+                label: 'View',
+                data: @json($chartView),
                 borderWidth: 2,
                 tension: 0.4
             },
             {
-                label: 'Ekonomi',
-                data: @json($chartEkonomi),
-                borderWidth: 2,
-                tension: 0.4
-            },
-            {
-                label: 'Pertanian',
-                data: @json($chartPertanian),
+                label: 'Download',
+                data: @json($chartDownload),
                 borderWidth: 2,
                 tension: 0.4
             }

@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('penggunaan_data', function (Blueprint $table) {
             $table->id();
-            $table->date('periode');
+            $table->date('periode_awal');
+            $table->date('periode_akhir');
+            $table->date('tanggal');
             $table->string('view', 150);
-            $table->string('download', 150);;
+            $table->string('download', 150);
             $table->timestamps();
         });
     }

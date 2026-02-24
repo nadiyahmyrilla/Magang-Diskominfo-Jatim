@@ -22,34 +22,36 @@
 
     <div class="stat-grid">
         <div class="stat-card">
-            <h6>JUMLAH SOSIAL</h6>
-            <h2>{{ $jumlahSosial }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH AGENDA BULAN INI</h6>
+            <h2>{{ $jumlahAgenda }}</h2>
+            <span>{{ $tanggalTerbaru?->format('Y-m-d') ?? '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH EKONOMI</h6>
-            <h2>{{ $jumlahEkonomi }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>RATA-RATA PROGRESS</h6>
+            <h2>{{ round($rataProgress, 2) }}%</h2>
+            <span>{{ $tanggalTerbaru?->format('Y-m-d') ?? '-' }}</span>
+        </div>
+
+           
+
+        <div class="stat-card">
+            <h6>TOTAL PROGRESS</h6>
+            <h2>{{ round($rataProgress, 2) }}%</h2>
+            <span>{{ $tanggalTerbaru?->format('Y-m-d') ?? '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH TOTAL PERIODE</h6>
-            <h2>{{ $totalPeriode }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
-        </div>
-
-        <div class="stat-card">
-            <h6>JUMLAH PERTANIAN</h6>
-            <h2>{{ $jumlahPertanian }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>STATUS</h6>
+            <h2>{{ $rataProgress >= 75 ? 'Baik' : ($rataProgress >= 50 ? 'Cukup' : 'Perlu Ditingkatkan') }}</h2>
+            <span>{{ $tanggalTerbaru?->format('Y-m-d') ?? '-' }}</span>
         </div>
     </div>
 
     <div class="chart-card">
-        <h5>Infografis</h5>
-        <span>{{ $tanggalTerbaru }}</span>
-        <canvas id="infografisChart" height="180"></canvas>
+        <h5>Konten Tematik</h5>
+        <span>{{ $tanggalTerbaru?->format('Y-m-d') ?? '-' }}</span>
+        <canvas id="kontenChart" height="180"></canvas>
     </div>
 </div>
 
@@ -57,16 +59,16 @@
 <div class="table-section">
 
     <div class="table-header align-items-start">
-        <h4 class="mb-0">Pengguna Data</h4>
+        <h4 class="mb-0">Data Konten Tematik</h4>
 
         <div class="table-actions align-items-start">
-            <a href="{{ route('admin.infografis.create') }}" class="btn btn-primary tambah-data-btn">
+            <a href="{{ route('admin.konten_tematik.create') }}" class="btn btn-primary tambah-data-btn">
                 Tambah Data +
             </a>
 
             {{-- ================= FORM FILTER ================= --}}
             <form method="GET"
-                  action="{{ route('admin.infografis.index') }}"
+                  action="{{ route('admin.konten_tematik.index') }}"
                   class="row g-2 align-items-end">
 
                 <div class="col-md-4">
@@ -74,7 +76,7 @@
                     <input type="text"
                            name="search"
                            class="form-control"
-                           placeholder="Ketik periode atau tanggal"
+                           placeholder="Ketik agenda atau tanggal"
                            value="{{ request('search') }}">
                 </div>
 
@@ -99,7 +101,7 @@
                         Filter
                     </button>
 
-                    <a href="{{ route('admin.infografis.index') }}"
+                    <a href="{{ route('admin.konten_tematik.index') }}"
                        class="btn btn-outline-danger w-100">
                         Reset
                     </a>
@@ -112,33 +114,39 @@
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>Periode</th>
                     <th>Tanggal</th>
-                    <th>Sosial</th>
-                    <th>Ekonomi</th>
-                    <th>Pertanian</th>
-                    <th>Link Bukti</th>
+                    <th>Agenda</th>
+                    <th>Progress (%)</th>
+                    <th>Data Dukung</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($data as $row)
                 <tr>
-                    <td>{{ $row->periode }}</td>
-                    <td>{{ $row->tanggal_target }}</td>
-                    <td>{{ $row->sosial }}</td>
-                    <td>{{ $row->ekonomi }}</td>
-                    <td>{{ $row->pertanian }}</td>
+                    <td>{{ \Carbon\Carbon::parse($row->tanggal_target)->format('Y-m-d') }}</td>
+                    <td>{{ $row->agenda }}</td>
                     <td>
-                        @if ($row->link_bukti)
-                            <a href="{{ $row->link_bukti }}" target="_blank">Link</a>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ $row->progress }}%;" 
+                                 aria-valuenow="{{ $row->progress }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ round($row->progress, 2) }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        @if ($row->data_dukung)
+                            <span class="badge bg-info">{{ Str::limit($row->data_dukung, 30) }}</span>
+                        @else
+                            -
                         @endif
                     </td>
                     <td>
-                        <a href="{{ route('admin.infografis.edit', $row->id) }}"
+                        <a href="{{ route('admin.konten_tematik.edit', $row->id) }}"
                            class="btn btn-warning btn-sm">Edit</a>
 
-                        <form action="{{ route('admin.infografis.destroy', $row->id) }}"
+                        <form action="{{ route('admin.konten_tematik.destroy', $row->id) }}"
                               method="POST"
                               class="d-inline">
                             @csrf
@@ -152,7 +160,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="5" class="text-center">
                         Data tidak ditemukan
                     </td>
                 </tr>
@@ -169,30 +177,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('infografisChart').getContext('2d');
+const ctx = document.getElementById('kontenChart').getContext('2d');
 
 new Chart(ctx, {
     type: 'line',
     data: {
-        labels: @json($chartLabels),
+        labels: @json(collect($chartLabels)->map(fn($d) => $d ? (Str::contains($d, 'T') ? Str::before($d, 'T') : $d) : null)),
         datasets: [
             {
-                label: 'Sosial',
-                data: @json($chartSosial),
+                label: 'Progress Agenda',
+                data: @json($chartProgress),
                 borderWidth: 2,
-                tension: 0.4
-            },
-            {
-                label: 'Ekonomi',
-                data: @json($chartEkonomi),
-                borderWidth: 2,
-                tension: 0.4
-            },
-            {
-                label: 'Pertanian',
-                data: @json($chartPertanian),
-                borderWidth: 2,
-                tension: 0.4
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(37, 99, 235, 0.1)'
             }
         ]
     },
@@ -205,7 +203,8 @@ new Chart(ctx, {
         },
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                max: 100
             }
         }
     }

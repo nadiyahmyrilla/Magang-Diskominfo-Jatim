@@ -1,8 +1,8 @@
-@extends('layouts.admin')
+@extends('layouts.user')
 
 @section('content')
 
-{{-- Success/Error Messages --}}
+{{-- Success/Error Messages (keep for parity with admin) --}}
 @if (session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('success') }}
@@ -17,56 +17,51 @@
     </div>
 @endif
 
-{{-- ================== SECTION ATAS ================== --}}
 <div class="dashboard-top mb-4">
 
     <div class="stat-grid">
         <div class="stat-card">
-            <h6>JUMLAH SOSIAL</h6>
-            <h2>{{ $jumlahSosial }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH LAKI-LAKI</h6>
+            <h2>{{ $jumlahLakiLaki ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH EKONOMI</h6>
-            <h2>{{ $jumlahEkonomi }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH PEREMPUAN</h6>
+            <h2>{{ $jumlahPerempuan ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH TOTAL PERIODE</h6>
-            <h2>{{ $totalPeriode }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH PERANGKAT DAERAH</h6>
+            <h2>{{ $jumlahPerangkatDaerah ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH PERTANIAN</h6>
-            <h2>{{ $jumlahPertanian }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH TOTAL</h6>
+            <h2>{{ $jumlahTotal ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
     </div>
 
     <div class="chart-card">
-        <h5>Infografis</h5>
-        <span>{{ $tanggalTerbaru }}</span>
-        <canvas id="infografisChart" height="180"></canvas>
+        <h5>Layanan Konsultasi</h5>
+        <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
+        <canvas id="konsultasiChart" height="180"></canvas>
     </div>
 </div>
 
-{{-- ================== SECTION TABEL ================== --}}
+{{-- Table Section (no add/edit/delete for user) --}}
 <div class="table-section">
 
     <div class="table-header align-items-start">
-        <h4 class="mb-0">Pengguna Data</h4>
+        <h4 class="mb-0">Data Layanan Konsultasi</h4>
 
         <div class="table-actions align-items-start">
-            <a href="{{ route('admin.infografis.create') }}" class="btn btn-primary tambah-data-btn">
-                Tambah Data +
-            </a>
-
-            {{-- ================= FORM FILTER ================= --}}
+            {{-- Filter form mirrors admin but posts to user route --}}
             <form method="GET"
-                  action="{{ route('admin.infografis.index') }}"
+                  action="{{ route('user.layanan_konsultasi.index') }}"
                   class="row g-2 align-items-end">
 
                 <div class="col-md-4">
@@ -74,7 +69,7 @@
                     <input type="text"
                            name="search"
                            class="form-control"
-                           placeholder="Ketik periode atau tanggal"
+                           placeholder="Ketik perangkat daerah atau tanggal"
                            value="{{ request('search') }}">
                 </div>
 
@@ -99,7 +94,7 @@
                         Filter
                     </button>
 
-                    <a href="{{ route('admin.infografis.index') }}"
+                    <a href="{{ route('user.layanan_konsultasi.index') }}"
                        class="btn btn-outline-danger w-100">
                         Reset
                     </a>
@@ -112,47 +107,23 @@
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>Periode</th>
-                    <th>Tanggal</th>
-                    <th>Sosial</th>
-                    <th>Ekonomi</th>
-                    <th>Pertanian</th>
-                    <th>Link Bukti</th>
-                    <th>Aksi</th>
+                    <th>Tanggal Pelaksanaan</th>
+                    <th>Perangkat Daerah</th>
+                    <th>Laki-laki</th>
+                    <th>Perempuan</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($data as $row)
                 <tr>
-                    <td>{{ $row->periode }}</td>
-                    <td>{{ $row->tanggal_target }}</td>
-                    <td>{{ $row->sosial }}</td>
-                    <td>{{ $row->ekonomi }}</td>
-                    <td>{{ $row->pertanian }}</td>
-                    <td>
-                        @if ($row->link_bukti)
-                            <a href="{{ $row->link_bukti }}" target="_blank">Link</a>
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('admin.infografis.edit', $row->id) }}"
-                           class="btn btn-warning btn-sm">Edit</a>
-
-                        <form action="{{ route('admin.infografis.destroy', $row->id) }}"
-                              method="POST"
-                              class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                Hapus
-                            </button>
-                        </form>
-                    </td>
+                    <td>{{ $row->tanggal_target ? (is_string($row->tanggal_target) ? (\Str::contains($row->tanggal_target, 'T') ? \Str::before($row->tanggal_target, 'T') : $row->tanggal_target) : (method_exists($row->tanggal_target, 'format') ? $row->tanggal_target->format('Y-m-d') : $row->tanggal_target)) : '-' }}</td>
+                    <td>{{ $row->perangkat_daerah }}</td>
+                    <td>{{ $row->laki_laki }}</td>
+                    <td>{{ $row->perempuan }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="4" class="text-center">
                         Data tidak ditemukan
                     </td>
                 </tr>
@@ -169,28 +140,22 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('infografisChart').getContext('2d');
+const ctx = document.getElementById('konsultasiChart').getContext('2d');
 
 new Chart(ctx, {
     type: 'line',
     data: {
-        labels: @json($chartLabels),
+        labels: @json($chartLabels ?? []),
         datasets: [
             {
-                label: 'Sosial',
-                data: @json($chartSosial),
+                label: 'Laki-laki',
+                data: @json($chartLakiLaki ?? []),
                 borderWidth: 2,
                 tension: 0.4
             },
             {
-                label: 'Ekonomi',
-                data: @json($chartEkonomi),
-                borderWidth: 2,
-                tension: 0.4
-            },
-            {
-                label: 'Pertanian',
-                data: @json($chartPertanian),
+                label: 'Perempuan',
+                data: @json($chartPerempuan ?? []),
                 borderWidth: 2,
                 tension: 0.4
             }

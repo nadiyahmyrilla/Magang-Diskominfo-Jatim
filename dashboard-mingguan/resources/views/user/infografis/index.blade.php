@@ -1,44 +1,39 @@
-@extends('layouts.admin')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@extends('layouts.user')
 
 @section('content')
 
-{{-- Success/Error Messages --}}
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
 {{-- ================== SECTION ATAS ================== --}}
 <div class="dashboard-top mb-4">
-
     <div class="stat-grid">
         <div class="stat-card">
             <h6>JUMLAH SOSIAL</h6>
             <h2>{{ $jumlahSosial }}</h2>
             <span>{{ $tanggalTerbaru }}</span>
         </div>
-
         <div class="stat-card">
             <h6>JUMLAH EKONOMI</h6>
             <h2>{{ $jumlahEkonomi }}</h2>
             <span>{{ $tanggalTerbaru }}</span>
         </div>
-
         <div class="stat-card">
             <h6>JUMLAH TOTAL PERIODE</h6>
             <h2>{{ $totalPeriode }}</h2>
             <span>{{ $tanggalTerbaru }}</span>
         </div>
-
         <div class="stat-card">
             <h6>JUMLAH PERTANIAN</h6>
             <h2>{{ $jumlahPertanian }}</h2>
@@ -55,20 +50,13 @@
 
 {{-- ================== SECTION TABEL ================== --}}
 <div class="table-section">
-
     <div class="table-header align-items-start">
-        <h4 class="mb-0">Pengguna Data</h4>
-
+        <h4 class="mb-0">Infografis</h4>
         <div class="table-actions align-items-start">
-            <a href="{{ route('admin.infografis.create') }}" class="btn btn-primary tambah-data-btn">
-                Tambah Data +
-            </a>
-
             {{-- ================= FORM FILTER ================= --}}
             <form method="GET"
-                  action="{{ route('admin.infografis.index') }}"
+                  action="{{ route('user.infografis.index') }}"
                   class="row g-2 align-items-end">
-
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Cari Data</label>
                     <input type="text"
@@ -77,7 +65,6 @@
                            placeholder="Ketik periode atau tanggal"
                            value="{{ request('search') }}">
                 </div>
-
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Tanggal Awal</label>
                     <input type="date"
@@ -85,7 +72,6 @@
                            class="form-control"
                            value="{{ request('tanggal_awal') }}">
                 </div>
-
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Tanggal Akhir</label>
                     <input type="date"
@@ -93,13 +79,11 @@
                            class="form-control"
                            value="{{ request('tanggal_akhir') }}">
                 </div>
-
                 <div class="col-md-2 d-flex gap-2">
                     <button class="btn btn-outline-secondary w-100">
                         Filter
                     </button>
-
-                    <a href="{{ route('admin.infografis.index') }}"
+                    <a href="{{ route('user.infografis.index') }}"
                        class="btn btn-outline-danger w-100">
                         Reset
                     </a>
@@ -118,7 +102,6 @@
                     <th>Ekonomi</th>
                     <th>Pertanian</th>
                     <th>Link Bukti</th>
-                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -131,28 +114,15 @@
                     <td>{{ $row->pertanian }}</td>
                     <td>
                         @if ($row->link_bukti)
-                            <a href="{{ $row->link_bukti }}" target="_blank">Link</a>
+                            <a href="{{ $row->link_bukti }}" target="_blank" class="badge bg-primary">Link</a>
+                        @else
+                            <span class="text-muted">-</span>
                         @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('admin.infografis.edit', $row->id) }}"
-                           class="btn btn-warning btn-sm">Edit</a>
-
-                        <form action="{{ route('admin.infografis.destroy', $row->id) }}"
-                              method="POST"
-                              class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                Hapus
-                            </button>
-                        </form>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="6" class="text-center">
                         Data tidak ditemukan
                     </td>
                 </tr>
@@ -167,10 +137,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 const ctx = document.getElementById('infografisChart').getContext('2d');
-
 new Chart(ctx, {
     type: 'line',
     data: {

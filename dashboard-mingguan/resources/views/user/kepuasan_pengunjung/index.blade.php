@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.user')
 
 @section('content')
 
@@ -22,34 +22,34 @@
 
     <div class="stat-grid">
         <div class="stat-card">
-            <h6>JUMLAH SOSIAL</h6>
-            <h2>{{ $jumlahSosial }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH SANGAT PUAS</h6>
+            <h2>{{ $jumlahSangatPuas ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH EKONOMI</h6>
-            <h2>{{ $jumlahEkonomi }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH PUAS</h6>
+            <h2>{{ $jumlahPuas ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH TOTAL PERIODE</h6>
-            <h2>{{ $totalPeriode }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH TIDAK PUAS</h6>
+            <h2>{{ $jumlahTidakPuas ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH PERTANIAN</h6>
-            <h2>{{ $jumlahPertanian }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>JUMLAH SANGAT TIDAK PUAS</h6>
+            <h2>{{ $jumlahSangatTidakPuas ?? 0 }}</h2>
+            <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
         </div>
     </div>
 
     <div class="chart-card">
-        <h5>Infografis</h5>
-        <span>{{ $tanggalTerbaru }}</span>
-        <canvas id="infografisChart" height="180"></canvas>
+        <h5>Kepuasan Pengunjung</h5>
+        <span>{{ $tanggalTerbaru?->format('d M Y') ?? 'N/A' }}</span>
+        <canvas id="kepuasanChart" height="180"></canvas>
     </div>
 </div>
 
@@ -57,16 +57,12 @@
 <div class="table-section">
 
     <div class="table-header align-items-start">
-        <h4 class="mb-0">Pengguna Data</h4>
+        <h4 class="mb-0">Data Kepuasan Pengunjung</h4>
 
         <div class="table-actions align-items-start">
-            <a href="{{ route('admin.infografis.create') }}" class="btn btn-primary tambah-data-btn">
-                Tambah Data +
-            </a>
-
             {{-- ================= FORM FILTER ================= --}}
             <form method="GET"
-                  action="{{ route('admin.infografis.index') }}"
+                  action="{{ route('user.kepuasan_pengunjung.index') }}"
                   class="row g-2 align-items-end">
 
                 <div class="col-md-4">
@@ -74,7 +70,7 @@
                     <input type="text"
                            name="search"
                            class="form-control"
-                           placeholder="Ketik periode atau tanggal"
+                           placeholder="Ketik jenis kelamin atau tanggal"
                            value="{{ request('search') }}">
                 </div>
 
@@ -99,7 +95,7 @@
                         Filter
                     </button>
 
-                    <a href="{{ route('admin.infografis.index') }}"
+                    <a href="{{ route('user.kepuasan_pengunjung.index') }}"
                        class="btn btn-outline-danger w-100">
                         Reset
                     </a>
@@ -112,47 +108,27 @@
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>Periode</th>
-                    <th>Tanggal</th>
-                    <th>Sosial</th>
-                    <th>Ekonomi</th>
-                    <th>Pertanian</th>
-                    <th>Link Bukti</th>
-                    <th>Aksi</th>
+                    <th>Tanggal Pelaporan</th>
+                    <th>Jenis Kelamin</th>
+                    <th>Sangat Puas</th>
+                    <th>Puas</th>
+                    <th>Tidak Puas</th>
+                    <th>Sangat Tidak Puas</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($data as $row)
                 <tr>
-                    <td>{{ $row->periode }}</td>
                     <td>{{ $row->tanggal_target }}</td>
-                    <td>{{ $row->sosial }}</td>
-                    <td>{{ $row->ekonomi }}</td>
-                    <td>{{ $row->pertanian }}</td>
-                    <td>
-                        @if ($row->link_bukti)
-                            <a href="{{ $row->link_bukti }}" target="_blank">Link</a>
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('admin.infografis.edit', $row->id) }}"
-                           class="btn btn-warning btn-sm">Edit</a>
-
-                        <form action="{{ route('admin.infografis.destroy', $row->id) }}"
-                              method="POST"
-                              class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                Hapus
-                            </button>
-                        </form>
-                    </td>
+                    <td>{{ $row->jenis_kelamin }}</td>
+                    <td>{{ $row->sangat_puas }}</td>
+                    <td>{{ $row->puas }}</td>
+                    <td>{{ $row->tidak_puas }}</td>
+                    <td>{{ $row->sangat_tidak_puas }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="6" class="text-center">
                         Data tidak ditemukan
                     </td>
                 </tr>
@@ -169,28 +145,34 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('infografisChart').getContext('2d');
+const ctx = document.getElementById('kepuasanChart').getContext('2d');
 
 new Chart(ctx, {
     type: 'line',
     data: {
-        labels: @json($chartLabels),
+        labels: @json($chartLabels ?? []),
         datasets: [
             {
-                label: 'Sosial',
-                data: @json($chartSosial),
+                label: 'Sangat Puas',
+                data: @json($chartSangatPuas ?? []),
                 borderWidth: 2,
                 tension: 0.4
             },
             {
-                label: 'Ekonomi',
-                data: @json($chartEkonomi),
+                label: 'Puas',
+                data: @json($chartPuas ?? []),
                 borderWidth: 2,
                 tension: 0.4
             },
             {
-                label: 'Pertanian',
-                data: @json($chartPertanian),
+                label: 'Tidak Puas',
+                data: @json($chartTidakPuas ?? []),
+                borderWidth: 2,
+                tension: 0.4
+            },
+            {
+                label: 'Sangat Tidak Puas',
+                data: @json($chartSangatTidakPuas ?? []),
                 borderWidth: 2,
                 tension: 0.4
             }

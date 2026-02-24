@@ -22,34 +22,34 @@
 
     <div class="stat-grid">
         <div class="stat-card">
-            <h6>JUMLAH SOSIAL</h6>
-            <h2>{{ $jumlahSosial }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>TOTAL JUMLAH</h6>
+            <h2>{{ $totalJumlah }}</h2>
+            <span>{{ $tanggalTerbaru ? $tanggalTerbaru->format('Y-m-d') : '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH EKONOMI</h6>
-            <h2>{{ $jumlahEkonomi }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>TOTAL PERANGKAT</h6>
+            <h2>{{ $totalPerangkat }}</h2>
+            <span>{{ $tanggalTerbaru ? $tanggalTerbaru->format('Y-m-d') : '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH TOTAL PERIODE</h6>
-            <h2>{{ $totalPeriode }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>RATA-RATA JUMLAH</h6>
+            <h2>{{ $rataRataJumlah }}</h2>
+            <span>{{ $tanggalTerbaru ? $tanggalTerbaru->format('Y-m-d') : '-' }}</span>
         </div>
 
         <div class="stat-card">
-            <h6>JUMLAH PERTANIAN</h6>
-            <h2>{{ $jumlahPertanian }}</h2>
-            <span>{{ $tanggalTerbaru }}</span>
+            <h6>TANGGAL TERBARU</h6>
+            <h2>{{ $tanggalTerbaru ? $tanggalTerbaru->format('d') : '-' }}</h2>
+            <span>{{ $tanggalTerbaru ? $tanggalTerbaru->format('Y-m-d') : '-' }}</span>
         </div>
     </div>
 
     <div class="chart-card">
-        <h5>Infografis</h5>
-        <span>{{ $tanggalTerbaru }}</span>
-        <canvas id="infografisChart" height="180"></canvas>
+        <h5>Daftar Data</h5>
+        <span>{{ $tanggalTerbaru ? $tanggalTerbaru->format('Y-m-d') : '-' }}</span>
+        <canvas id="daftarDataChart" height="180"></canvas>
     </div>
 </div>
 
@@ -57,16 +57,16 @@
 <div class="table-section">
 
     <div class="table-header align-items-start">
-        <h4 class="mb-0">Pengguna Data</h4>
+        <h4 class="mb-0">Daftar Data</h4>
 
         <div class="table-actions align-items-start">
-            <a href="{{ route('admin.infografis.create') }}" class="btn btn-primary tambah-data-btn">
+            <a href="{{ route('admin.daftar_data.create') }}" class="btn btn-primary tambah-data-btn">
                 Tambah Data +
             </a>
 
             {{-- ================= FORM FILTER ================= --}}
             <form method="GET"
-                  action="{{ route('admin.infografis.index') }}"
+                  action="{{ route('admin.daftar_data.index') }}"
                   class="row g-2 align-items-end">
 
                 <div class="col-md-4">
@@ -74,7 +74,7 @@
                     <input type="text"
                            name="search"
                            class="form-control"
-                           placeholder="Ketik periode atau tanggal"
+                           placeholder="Ketik perangkat daerah"
                            value="{{ request('search') }}">
                 </div>
 
@@ -99,7 +99,7 @@
                         Filter
                     </button>
 
-                    <a href="{{ route('admin.infografis.index') }}"
+                    <a href="{{ route('admin.daftar_data.index') }}"
                        class="btn btn-outline-danger w-100">
                         Reset
                     </a>
@@ -112,33 +112,23 @@
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>Periode</th>
-                    <th>Tanggal</th>
-                    <th>Sosial</th>
-                    <th>Ekonomi</th>
-                    <th>Pertanian</th>
-                    <th>Link Bukti</th>
+                    <th>Perangkat Daerah</th>
+                    <th>Jumlah</th>
+                    <th>Tanggal Target</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($data as $row)
                 <tr>
-                    <td>{{ $row->periode }}</td>
-                    <td>{{ $row->tanggal_target }}</td>
-                    <td>{{ $row->sosial }}</td>
-                    <td>{{ $row->ekonomi }}</td>
-                    <td>{{ $row->pertanian }}</td>
+                    <td>{{ $row->perangkat_daerah }}</td>
+                    <td>{{ $row->jumlah }}</td>
+                    <td>{{ $row->tanggal_target->format('Y-m-d') }}</td>
                     <td>
-                        @if ($row->link_bukti)
-                            <a href="{{ $row->link_bukti }}" target="_blank">Link</a>
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('admin.infografis.edit', $row->id) }}"
+                        <a href="{{ route('admin.daftar_data.edit', $row->id) }}"
                            class="btn btn-warning btn-sm">Edit</a>
 
-                        <form action="{{ route('admin.infografis.destroy', $row->id) }}"
+                        <form action="{{ route('admin.daftar_data.destroy', $row->id) }}"
                               method="POST"
                               class="d-inline">
                             @csrf
@@ -152,7 +142,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center">
+                    <td colspan="4" class="text-center">
                         Data tidak ditemukan
                     </td>
                 </tr>
@@ -169,7 +159,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('infografisChart').getContext('2d');
+const ctx = document.getElementById('daftarDataChart').getContext('2d');
 
 new Chart(ctx, {
     type: 'line',
@@ -177,20 +167,8 @@ new Chart(ctx, {
         labels: @json($chartLabels),
         datasets: [
             {
-                label: 'Sosial',
-                data: @json($chartSosial),
-                borderWidth: 2,
-                tension: 0.4
-            },
-            {
-                label: 'Ekonomi',
-                data: @json($chartEkonomi),
-                borderWidth: 2,
-                tension: 0.4
-            },
-            {
-                label: 'Pertanian',
-                data: @json($chartPertanian),
+                label: 'Jumlah',
+                data: @json($chartJumlah),
                 borderWidth: 2,
                 tension: 0.4
             }

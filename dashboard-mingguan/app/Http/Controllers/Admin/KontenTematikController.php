@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Infografis;
+use App\Models\KontenTematik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class InfografisController extends Controller
+class KontenTematikController extends Controller
 {
     public function index(Request $request)
     {
@@ -16,7 +16,7 @@ class InfografisController extends Controller
         | QUERY DASAR
         |--------------------------------------------------------------------------
         */
-        $baseQuery = Infografis::query();
+        $baseQuery = KontenTematik::query();
 
         /*
         |--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ class InfografisController extends Controller
         */
         if ($request->filled('search')) {
             $baseQuery->where(function ($q) use ($request) {
-                $q->where('periode', 'like', '%' . $request->search . '%')
+                $q->where('agenda', 'like', '%' . $request->search . '%')
                 ->orWhere('tanggal_target', 'like', '%' . $request->search . '%');
             });
         }
@@ -72,7 +72,7 @@ class InfografisController extends Controller
         $statQuery = clone $baseQuery;
 
         if (!$adaFilter) {
-            $tanggalTerbaru = Infografis::max('tanggal_target');
+            $tanggalTerbaru = KontenTematik::max('tanggal_target');
             $statQuery->whereDate('tanggal_target', $tanggalTerbaru);
         }
 
@@ -83,10 +83,9 @@ class InfografisController extends Controller
         | STATISTIK
         |--------------------------------------------------------------------------
         */
-        $jumlahSosial    = $dataStat->sum('sosial');
-        $jumlahEkonomi   = $dataStat->sum('ekonomi');
-        $jumlahPertanian = $dataStat->sum('pertanian');
-        $totalPeriode    = $dataStat->count();
+        $jumlahAgenda    = $dataStat->count();
+        $rataProgress    = $dataStat->count() > 0 ? $dataStat->avg('progress') : 0;
+        $totalProgress   = $dataStat->sum('progress');
         $tanggalTerbaru  = $dataStat->max('tanggal_target');
 
         /*
@@ -94,104 +93,81 @@ class InfografisController extends Controller
         | DATA GRAFIK
         |--------------------------------------------------------------------------
         */
-        $chartLabels     = $dataStat->pluck('tanggal_target');
-        $chartSosial     = $dataStat->pluck('sosial');
-        $chartEkonomi    = $dataStat->pluck('ekonomi');
-        $chartPertanian  = $dataStat->pluck('pertanian');
+        $chartLabels     = $dataStat->pluck('tanggal_target')->map(function($d) { return $d ? (is_string($d) ? (\Str::contains($d, 'T') ? \Str::before($d, 'T') : $d) : (method_exists($d, 'format') ? $d->format('Y-m-d') : $d)) : null; });
+        $chartProgress   = $dataStat->pluck('progress');
+        $chartAgenda     = $dataStat->pluck('agenda');
 
-        return view('admin.infografis.index', compact(
+        return view('admin.konten_tematik.index', compact(
             'data',
-            'jumlahSosial',
-            'jumlahEkonomi',
-            'jumlahPertanian',
-            'totalPeriode',
+            'jumlahAgenda',
+            'rataProgress',
+            'totalProgress',
             'tanggalTerbaru',
             'chartLabels',
-            'chartSosial',
-            'chartEkonomi',
-            'chartPertanian'
+            'chartProgress',
+            'chartAgenda'
         ));
     }
 
     public function create()
     {
-        return view('admin.infografis.create');
+        return view('admin.konten_tematik.create');
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'tanggal_target' => 'required|date',
-            'periode'        => 'required|string|max:255',
-            'sosial'         => 'required|numeric|min:0',
-            'ekonomi'        => 'required|numeric|min:0',
-            'pertanian'      => 'required|numeric|min:0',
-            'link_bukti'     => 'nullable|url',
-        ], [
-            'sosial.numeric' => 'Jumlah sosial harus berupa angka.',
-            'sosial.min' => 'Jumlah sosial tidak boleh kurang dari 0.',
-            'ekonomi.numeric' => 'Jumlah ekonomi harus berupa angka.',
-            'ekonomi.min' => 'Jumlah ekonomi tidak boleh kurang dari 0.',
-            'pertanian.numeric' => 'Jumlah pertanian harus berupa angka.',
-            'pertanian.min' => 'Jumlah pertanian tidak boleh kurang dari 0.',
-            'link_bukti.url' => 'Link bukti harus berupa URL lengkap (http:// atau https://).'
+            'agenda'         => 'required|string|max:200',
+            'progress'       => 'required|numeric|min:0|max:100',
+            'data_dukung'    => 'nullable|string|max:255',
         ]);
 
         try {
             $data = $request->all();
-            Log::info('Infografis: Inserting data', $data);
+            Log::info('KontenTematik: Inserting data', $data);
             
-            $result = Infografis::create($data);
+            $result = KontenTematik::create($data);
             
-            Log::info('Infografis: Data successfully saved with ID: ' . $result->id);
+            Log::info('KontenTematik: Data successfully saved with ID: ' . $result->id);
             
-            return redirect()->route('admin.infografis.index')
-                ->with('success', 'Data infografis berhasil disimpan');
+            return redirect()->route('admin.konten_tematik.index')
+                ->with('success', 'Data konten tematik berhasil disimpan');
         } catch (\Exception $e) {
-            Log::error('Infografis: Failed to save data - ' . $e->getMessage());
+            Log::error('KontenTematik: Failed to save data - ' . $e->getMessage());
             return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
     public function edit($id)
     {
-        $infografis = Infografis::findOrFail($id);
-        return view('admin.infografis.edit', compact('infografis'));
+        $kontenTematik = KontenTematik::findOrFail($id);
+        return view('admin.konten_tematik.edit', compact('kontenTematik'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
             'tanggal_target' => 'required|date',
-            'periode'        => 'required|string',
-            'sosial'         => 'required|numeric|min:0',
-            'ekonomi'        => 'required|numeric|min:0',
-            'pertanian'      => 'required|numeric|min:0',
-            'link_bukti'     => 'nullable|url',
-        ], [
-            'sosial.numeric' => 'Jumlah sosial harus berupa angka.',
-            'sosial.min' => 'Jumlah sosial tidak boleh kurang dari 0.',
-            'ekonomi.numeric' => 'Jumlah ekonomi harus berupa angka.',
-            'ekonomi.min' => 'Jumlah ekonomi tidak boleh kurang dari 0.',
-            'pertanian.numeric' => 'Jumlah pertanian harus berupa angka.',
-            'pertanian.min' => 'Jumlah pertanian tidak boleh kurang dari 0.',
-            'link_bukti.url' => 'Link bukti harus berupa URL lengkap (http:// atau https://).'
+            'agenda'         => 'required|string',
+            'progress'       => 'required|numeric|min:0|max:100',
+            'data_dukung'    => 'nullable|string',
         ]);
 
         try {
-            $infografis = Infografis::findOrFail($id);
+            $kontenTematik = KontenTematik::findOrFail($id);
             $data = $request->all();
             
-            Log::info('Infografis: Updating data with ID: ' . $id, $data);
+            Log::info('KontenTematik: Updating data with ID: ' . $id, $data);
             
-            $infografis->update($data);
+            $kontenTematik->update($data);
             
-            Log::info('Infografis: Data with ID ' . $id . ' successfully updated');
+            Log::info('KontenTematik: Data with ID ' . $id . ' successfully updated');
             
-            return redirect()->route('admin.infografis.index')
-                ->with('success', 'Data infografis berhasil diperbarui');
+            return redirect()->route('admin.konten_tematik.index')
+                ->with('success', 'Data konten tematik berhasil diperbarui');
         } catch (\Exception $e) {
-            Log::error('Infografis: Failed to update data with ID ' . $id . ' - ' . $e->getMessage());
+            Log::error('KontenTematik: Failed to update data with ID ' . $id . ' - ' . $e->getMessage());
             return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
     }
@@ -199,11 +175,11 @@ class InfografisController extends Controller
     public function destroy($id)
     {
         try {
-            Infografis::findOrFail($id)->delete();
-            Log::info('Infografis: Data with ID ' . $id . ' successfully deleted');
+            KontenTematik::findOrFail($id)->delete();
+            Log::info('KontenTematik: Data with ID ' . $id . ' successfully deleted');
             return back()->with('success', 'Data berhasil dihapus');
         } catch (\Exception $e) {
-            Log::error('Infografis: Failed to delete data with ID ' . $id . ' - ' . $e->getMessage());
+            Log::error('KontenTematik: Failed to delete data with ID ' . $id . ' - ' . $e->getMessage());
             return back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
