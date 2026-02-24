@@ -17,10 +17,6 @@ Sistem Dashboard Mingguan telah diimplementasikan dengan fitur lengkap:
   - Email: `admin@dashboard.com`
   - Password: `12345678`
   
-- **User Account**
-  - Email: `user@dashboard.com`
-  - Password: `user123456`
-
 ---
 
 ## 🚀 Cara Mengakses
@@ -356,7 +352,7 @@ php artisan serve
 ```
 Admin:
 - Email: admin@dashboard.com
-- Password: admin123456
+- Password: 12345678
 
 User:
 - Email: user@dashboard.com
