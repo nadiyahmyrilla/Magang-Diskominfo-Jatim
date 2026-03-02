@@ -1,0 +1,145 @@
+# Analisis Kondisi Lingkungan — Klasifikasi KNN
+
+## Deskripsi Project
+
+Project ini bertujuan untuk melakukan **klasifikasi kondisi lingkungan** di kabupaten/kota Jawa Timur berdasarkan data kejadian lingkungan tahun 2021–2025. Klasifikasi dilakukan menggunakan algoritma **K-Nearest Neighbors (KNN)** dengan tiga kategori label: **Rendah**, **Sedang**, dan **Tinggi**.
+
+Hasil analisis ditampilkan dalam **dashboard web** berbasis Django dengan visualisasi interaktif.
+
+---
+
+## Struktur Folder
+
+```
+analisis_kondisi_lingkungan/
+├── analytics/                  # Package utama (importable)
+│   ├── __init__.py
+│   ├── preprocessing.py        # Load data, preprocessing, normalisasi, labeling
+│   ├── analytics.py            # Merge multi-indicator dataframes
+│   ├── knn_model.py            # Training KNN, compare K, prediksi, kebijakan
+│   └── input_test.py           # Quick-check / validasi dataframe
+├── dashboard/                  # Django app — UI dashboard
+│   ├── views.py                # View: load data → analisis → kirim ke template
+│   ├── urls.py                 # Routing: / → dashboard_view
+│   └── templates/dashboard/
+│       └── index.html          # Template satu halaman (dark theme)
+├── data/
+│   └── data load.xlsx          # Dataset sumber (Excel)
+├── envclassify/                # Konfigurasi Django project
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── src/                        # Script standalone (CLI)
+│   ├── analisis_kondisi_lingkungan.py
+│   ├── preprocessing.py
+│   ├── knn_model.py
+│   ├── analytics.py
+│   └── test_data_explore.py
+├── knn_env/                    # Virtual environment
+├── manage.py                   # Django management
+└── READ.ME                     # File ini
+```
+
+---
+
+## Alur Kerja
+
+### 1. Load Data (`analytics.preprocessing.load_raw_data`)
+- Membaca file `data/data load.xlsx` secara dinamis.
+- Mengembalikan `DataFrame` berisi kolom `nama_kabupaten_kota`, `2021`, `2022`, `2023`, `2024`, `2025`.
+
+### 2. Preprocessing (`analytics.preprocessing.preprocess_timeseries`)
+- Mengonversi kolom tahun ke numerik.
+- Mengisi nilai kosong dengan 0.
+
+### 3. Labeling (`analytics.knn_model.create_label`)
+- Menghitung **skor agregat** dari seluruh kolom tahun.
+- Jika kolom terakhir memiliki varian nol, fallback ke total semua tahun.
+- Membuat label **Rendah / Sedang / Tinggi** menggunakan `pd.cut` berbasis kuantil.
+
+### 4. Training KNN (`analytics.knn_model.train_knn`)
+- Normalisasi fitur dengan `MinMaxScaler`.
+- Split data 70:30 (train:test) dengan stratifikasi.
+- Training `KNeighborsClassifier` dan evaluasi akurasi.
+
+### 5. Perbandingan Nilai K (`analytics.knn_model.compare_k`)
+- Menjalankan KNN untuk K=1 sampai K=10.
+- Mengembalikan dictionary `{k: akurasi}` untuk visualisasi.
+
+### 6. Rekomendasi Kebijakan (`analytics.knn_model.keputusan_kebijakan`)
+- **Rendah** → Pantau rutin
+- **Sedang** → Intervensi ringan
+- **Tinggi** → Tindakan cepat dan evaluasi lapangan
+
+---
+
+## Dashboard (UI)
+
+Dashboard satu halaman dengan tema gelap (ungu/pink/cyan):
+
+| Komponen             | Deskripsi                                         |
+|----------------------|---------------------------------------------------|
+| **Stat Cards**       | Total kabupaten, kolom, nilai kosong, duplikat, akurasi KNN |
+| **Bar Chart**        | Total kejadian per tahun (2021–2025)              |
+| **Doughnut Chart**   | Distribusi label klasifikasi                      |
+| **Area Chart**       | Rata-rata, min, max per tahun                     |
+| **Line Chart**       | Perbandingan akurasi K=1 sampai K=10              |
+| **Tabel Detail**     | Semua kabupaten/kota + label + rekomendasi kebijakan |
+
+---
+
+## Cara Menjalankan
+
+### 1. Aktifkan virtual environment
+```bash
+knn_env\Scripts\activate        # Windows
+source knn_env/bin/activate     # Linux/Mac
+```
+
+### 2. Install dependensi
+```bash
+pip install django pandas openpyxl scikit-learn
+```
+
+### 3. Jalankan server
+```bash
+python manage.py runserver
+```
+
+### 4. Buka dashboard
+Buka browser di **http://127.0.0.1:8000/**
+
+### 5. Jalankan analisis via CLI (opsional)
+```bash
+python src/analisis_kondisi_lingkungan.py
+```
+
+---
+
+## Bahasa & Teknologi
+
+### Bahasa Pemrograman
+- **Python 3.13** — bahasa utama untuk backend, analisis data, dan machine learning
+- **HTML5** — struktur halaman dashboard
+- **CSS3** — styling dan tema gelap (inline, tanpa framework CSS)
+- **JavaScript (ES6)** — rendering chart interaktif di sisi klien
+
+### Framework & Library
+- **Django 5.2** — web framework (routing, views, template engine)
+- **pandas** — manipulasi dan analisis dataframe
+- **scikit-learn** — algoritma KNN, normalisasi (MinMaxScaler), split data
+- **Chart.js 4** — visualisasi grafik (bar, doughnut, line, area) di browser
+- **openpyxl** — membaca file Excel (.xlsx)
+
+---
+
+## Data
+
+File `data/data load.xlsx` berisi data kejadian lingkungan per kabupaten/kota di Jawa Timur:
+
+| Kolom                | Tipe   | Keterangan                    |
+|----------------------|--------|-------------------------------|
+| `nama_kabupaten_kota`| string | Nama kabupaten/kota           |
+| `2021` – `2025`      | int    | Jumlah kejadian per tahun     |
+
+Total: **38 baris** (kabupaten/kota), **6 kolom**.

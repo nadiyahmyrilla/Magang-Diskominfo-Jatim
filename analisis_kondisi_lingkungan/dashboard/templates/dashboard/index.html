@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Analisis Kondisi Lingkungan</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #1a1a4e 40%, #24243e 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* ===== TOP NAV ===== */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(15, 12, 41, .85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(160, 100, 255, .15);
+    }
+    .topbar .logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .topbar .subtitle { font-size: .85rem; color: #9ca3af; margin-left: 12px; }
+
+    /* ===== MAIN GRID ===== */
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+    /* ===== STAT CARDS ===== */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: linear-gradient(145deg, rgba(30, 27, 75, .8), rgba(40, 35, 90, .6));
+      border: 1px solid rgba(160, 100, 255, .2);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(168, 85, 247, .25);
+    }
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #06b6d4, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-card .label { font-size: .85rem; color: #9ca3af; margin-top: 6px; }
+
+    /* ===== CHART CARDS ===== */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: linear-gradient(145deg, rgba(30, 27, 75, .75), rgba(40, 35, 90, .55));
+      border: 1px solid rgba(160, 100, 255, .15);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chart-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #c4b5fd;
+      flex-shrink: 0;
+    }
+    .chart-wrap {
+      position: relative;
+      flex: 1 1 0;
+      min-height: 320px;
+    }
+    .chart-wrap canvas {
+      position: absolute;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* ===== TABLE ===== */
+    .table-card {
+      background: linear-gradient(145deg, rgba(30, 27, 75, .75), rgba(40, 35, 90, .55));
+      border: 1px solid rgba(160, 100, 255, .15);
+      border-radius: 16px;
+      padding: 24px;
+      overflow-x: auto;
+    }
+    .table-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #c4b5fd;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: .8rem;
+      text-transform: uppercase;
+      color: #a78bfa;
+      border-bottom: 1px solid rgba(160, 100, 255, .25);
+    }
+    tbody td {
+      padding: 10px 14px;
+      font-size: .85rem;
+      border-bottom: 1px solid rgba(160, 100, 255, .08);
+    }
+    tbody tr:hover { background: rgba(168, 85, 247, .08); }
+
+    /* badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .badge-rendah  { background: rgba(6, 182, 212, .2);  color: #22d3ee; }
+    .badge-sedang  { background: rgba(168, 85, 247, .2); color: #c084fc; }
+    .badge-tinggi  { background: rgba(236, 72, 153, .2); color: #f472b6; }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: .75rem;
+      color: #6b7280;
+    }
+
+    @media (max-width: 860px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<nav class="topbar">
+  <div>
+    <span class="logo">Kominfo</span>
+    <span class="subtitle">Dashboard Analisis Kondisi Lingkungan</span>
+  </div>
+  <div style="font-size:.85rem;color:#9ca3af">KNN Classification &bull; Data {{ year_labels.0 }}&ndash;{{ year_labels.4 }}</div>
+</nav>
+
+<div class="container">
+
+  <!-- ===== STAT CARDS ===== -->
+  <section class="stat-row">
+    <div class="stat-card">
+      <div class="value">{{ total_rows }}</div>
+      <div class="label">Total Kabupaten / Kota</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">{{ total_cols }}</div>
+      <div class="label">Total Kolom Data</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">{{ missing_total }}</div>
+      <div class="label">Nilai Kosong</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">{{ duplicates }}</div>
+      <div class="label">Baris Duplikat</div>
+    </div>
+    <div class="stat-card">
+      <div class="value">{{ accuracy_pct }}%</div>
+      <div class="label">Akurasi KNN</div>
+    </div>
+  </section>
+
+  <!-- ===== ROW 1: Bar + Doughnut ===== -->
+  <section class="chart-grid">
+    <div class="chart-card">
+      <h3>Total Kejadian per Tahun</h3>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Distribusi Label Klasifikasi</h3>
+      <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ===== ROW 2: Area + K-comparison ===== -->
+  <section class="chart-grid">
+    <div class="chart-card">
+      <h3>Rata-rata &amp; Min-Max per Tahun</h3>
+      <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Perbandingan Nilai K (KNN)</h3>
+      <div class="chart-wrap"><canvas id="kChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ===== TABLE ===== -->
+  <section class="table-card">
+    <h3>Detail Kabupaten / Kota</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Kabupaten / Kota</th>
+          {% for yr in year_labels %}<th>{{ yr }}</th>{% endfor %}
+          <th>Label</th>
+          <th>Rekomendasi Kebijakan</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in table_data %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ row.name }}</td>
+          {% for v in row.values %}<td>{{ v }}</td>{% endfor %}
+          <td>
+            <span class="badge badge-{{ row.label|lower }}">{{ row.label }}</span>
+          </td>
+          <td>{{ row.kebijakan }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer class="footer">
+  &copy; 2026 Kominfo &mdash; Analisis Kondisi Lingkungan menggunakan KNN
+</footer>
+
+<!-- ===== CHARTS JS ===== -->
+<script>
+  // ---------- shared helpers ----------
+  const COLORS = {
+    cyan:    'rgba(6, 182, 212, 1)',
+    purple:  'rgba(168, 85, 247, 1)',
+    pink:    'rgba(236, 72, 153, 1)',
+    cyanA:   'rgba(6, 182, 212, .35)',
+    purpleA: 'rgba(168, 85, 247, .35)',
+    pinkA:   'rgba(236, 72, 153, .35)',
+  };
+
+  const gridColor = 'rgba(160, 100, 255, .1)';
+  const tickColor = '#9ca3af';
+
+  Chart.defaults.color = tickColor;
+  Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+
+  // ---------- data from Django ----------
+  const yearLabels  = {{ year_labels_json|safe }};
+  const yearTotals  = {{ year_totals_json|safe }};
+  const yearMeans   = {{ year_means_json|safe }};
+  const yearMin     = {{ year_min_json|safe }};
+  const yearMax     = {{ year_max_json|safe }};
+  const labelNames  = {{ label_names_json|safe }};
+  const labelCounts = {{ label_counts_json|safe }};
+  const kLabels     = {{ k_labels_json|safe }};
+  const kAcc        = {{ k_acc_json|safe }};
+
+  // ---------- 1. Bar Chart ----------
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: yearLabels,
+      datasets: [{
+        label: 'Total Kejadian',
+        data: yearTotals,
+        backgroundColor: yearTotals.map((_, i) => {
+          const gradients = [COLORS.cyan, COLORS.purple, COLORS.pink, COLORS.cyan, COLORS.purple];
+          return gradients[i % gradients.length];
+        }),
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor } },
+        y: { grid: { color: gridColor }, beginAtZero: true },
+      }
+    }
+  });
+
+  // ---------- 2. Doughnut Chart ----------
+  new Chart(document.getElementById('doughnutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: labelNames,
+      datasets: [{
+        data: labelCounts,
+        backgroundColor: [COLORS.cyan, COLORS.purple, COLORS.pink],
+        borderColor: 'rgba(15, 12, 41, .9)',
+        borderWidth: 3,
+        hoverOffset: 12,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
+      }
+    }
+  });
+
+  // ---------- 3. Area / Line Chart ----------
+  new Chart(document.getElementById('areaChart'), {
+    type: 'line',
+    data: {
+      labels: yearLabels,
+      datasets: [
+        {
+          label: 'Rata-rata',
+          data: yearMeans,
+          borderColor: COLORS.purple,
+          backgroundColor: COLORS.purpleA,
+          fill: true,
+          tension: .4,
+          pointRadius: 5,
+          pointBackgroundColor: COLORS.purple,
+        },
+        {
+          label: 'Min',
+          data: yearMin,
+          borderColor: COLORS.cyan,
+          backgroundColor: COLORS.cyanA,
+          fill: false,
+          borderDash: [5, 5],
+          tension: .4,
+          pointRadius: 4,
+          pointBackgroundColor: COLORS.cyan,
+        },
+        {
+          label: 'Max',
+          data: yearMax,
+          borderColor: COLORS.pink,
+          backgroundColor: COLORS.pinkA,
+          fill: false,
+          borderDash: [5, 5],
+          tension: .4,
+          pointRadius: 4,
+          pointBackgroundColor: COLORS.pink,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16 } } },
+      scales: {
+        x: { grid: { color: gridColor } },
+        y: { grid: { color: gridColor }, beginAtZero: true },
+      }
+    }
+  });
+
+  // ---------- 4. K Comparison ----------
+  new Chart(document.getElementById('kChart'), {
+    type: 'line',
+    data: {
+      labels: kLabels.map(k => 'K=' + k),
+      datasets: [{
+        label: 'Akurasi (%)',
+        data: kAcc,
+        borderColor: COLORS.pink,
+        backgroundColor: COLORS.pinkA,
+        fill: true,
+        tension: .35,
+        pointRadius: 5,
+        pointBackgroundColor: COLORS.pink,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor } },
+        y: { grid: { color: gridColor }, min: 0, max: 105, ticks: { callback: v => v + '%' } },
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
