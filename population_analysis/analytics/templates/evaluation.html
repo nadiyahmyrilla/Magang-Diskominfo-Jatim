@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<h2 class="page-title">Evaluasi Model KNN</h2>
+
+<!-- ================= METRICS ================= -->
+<div class="grid-4">
+
+    <div class="card summary-card">
+        <h4>Akurasi</h4>
+        <h2>{{ accuracy }}%</h2>
+    </div>
+
+    <div class="card summary-card">
+        <h4>Precision</h4>
+        <h2>{{ precision }}%</h2>
+    </div>
+
+    <div class="card summary-card">
+        <h4>Recall</h4>
+        <h2>{{ recall }}%</h2>
+    </div>
+
+    <div class="card summary-card highlight">
+        <h4>Nilai K Terbaik</h4>
+        <h2>{{ k_best }}</h2>
+    </div>
+
+</div>
+
+<!-- ================= CHART ================= -->
+<div class="card">
+    <h3>Perbandingan Akurasi Berdasarkan Nilai K</h3>
+    <canvas id="kChart"></canvas>
+</div>
+
+<hr style="margin:50px 0;">
+
+<!-- ================= FORM 1 ================= -->
+<div class="card">
+    <h3>Simulasi Cepat (1 Nilai)</h3>
+
+    <form method="POST" class="modern-form">
+        {% csrf_token %}
+        <input type="number" step="0.01" name="total_penduduk" placeholder="Masukkan nilai simulasi" required>
+        <button type="submit" name="submit_single" class="btn-modern">
+            Cek Klasifikasi
+        </button>
+    </form>
+
+    {% if prediction %}
+        <div class="result-card success">
+            <h4>Hasil Klasifikasi</h4>
+            <span class="badge">{{ prediction }}</span>
+        </div>
+    {% endif %}
+</div>
+
+<hr style="margin:50px 0;">
+
+<!-- ================= FORM 7 ================= -->
+<div class="card">
+    <h3>Simulasi 7 Indikator Wilayah</h3>
+
+    <form method="POST" class="modern-form">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            <input type="number" step="0.01" name="gk" placeholder="Garis Kemiskinan" required>
+            <input type="number" step="0.01" name="pm" placeholder="Penduduk Miskin (%)" required>
+            <input type="number" step="0.01" name="tpt" placeholder="Tingkat Pengangguran Terbuka" required>
+            <input type="number" step="0.01" name="jp" placeholder="Jumlah Penduduk" required>
+            <input type="number" step="0.01" name="lpp" placeholder="Laju Pertumbuhan Penduduk" required>
+            <input type="number" step="0.01" name="kp" placeholder="Kepadatan Penduduk" required>
+            <input type="number" step="0.01" name="rjk" placeholder="Rasio Jenis Kelamin" required>
+        </div>
+
+        <button type="submit" name="submit_7" class="btn-modern">
+            Prediksi Wilayah
+        </button>
+    </form>
+
+    {% if prediction_7 %}
+        <div class="result-card success">
+            <h4>Hasil Analisis</h4>
+            <span class="badge">{{ prediction_7 }}</span>
+        </div>
+    {% endif %}
+</div>
+
+</div>
+
+{{ k_values|json_script:"k-labels" }}
+{{ k_accuracies|json_script:"k-data" }}
+
+<script>
+const kLabels = JSON.parse(document.getElementById('k-labels').textContent);
+const kData = JSON.parse(document.getElementById('k-data').textContent);
+
+new Chart(document.getElementById('kChart'), {
+    type: 'bar',
+    data: {
+        labels: kLabels,
+        datasets: [{
+            label: 'Accuracy (%)',
+            data: kData,
+            borderRadius: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true, max: 100 }
+        }
+    }
+});
+</script>
+
+{% endblock %}

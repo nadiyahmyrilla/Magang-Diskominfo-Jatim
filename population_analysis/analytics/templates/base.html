@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Population Analysis</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <div class="sidebar">
+        <h2 class="logo">Population Analysis</h2>
+
+        <nav>
+            <ul>
+                <li>
+                    <a href="/" 
+                       class="{% if request.path == '/' %}active{% endif %}">
+                        🏠 Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/evaluation/" 
+                       class="{% if 'evaluation' in request.path %}active{% endif %}">
+                        📊 Evaluasi KNN
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+</html>

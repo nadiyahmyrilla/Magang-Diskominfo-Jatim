@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_tags %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<h2 class="section-title">Dashboard Population Jawa Timur</h2>
+
+<!-- FILTER -->
+<div class="card filter-card">
+    <form method="get">
+        <label>Pilih Tahun:</label>
+        <select name="year" onchange="this.form.submit()">
+            {% for y in years %}
+                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>
+                    {{ y }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<!-- SUMMARY -->
+<div class="grid-4">
+    <div class="card summary summary-1">
+        <h4>Rata-rata {{ selected_year }}</h4>
+        <h2>{{ rata2 }}</h2>
+    </div>
+
+    <div class="card summary summary-2">
+        <h4>Tertinggi</h4>
+        <h2>{{ tertinggi }}</h2>
+    </div>
+
+    <div class="card summary summary-3">
+        <h4>Terendah</h4>
+        <h2>{{ terendah }}</h2>
+    </div>
+
+    <div class="card summary summary-4">
+        <h4>Total Wilayah</h4>
+        <h2>{{ data|length }}</h2>
+    </div>
+</div>
+
+<!-- MAP + CHART -->
+<div class="top-grid">
+    <div class="card">
+        <div class="section-subtitle">Peta Wilayah Jawa Timur ({{ selected_year }})</div>
+        <div id="map"></div>
+    </div>
+
+    <div class="card">
+        <div class="section-subtitle">Perbandingan Rata-rata</div>
+        <canvas id="yearChart"></canvas>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="section-subtitle">Hasil Klasifikasi</div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Wilayah</th>
+                    {% for y in years %}
+                        <th>{{ y }}</th>
+                    {% endfor %}
+                    <th>Kategori</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row.wilayah }}</td>
+                    {% for y in years %}
+                        <td>{{ row|get_item:y }}</td>
+                    {% endfor %}
+                    <td>
+                        <span class="badge 
+                            {% if row.kategori == 'Tinggi' %}badge-high
+                            {% elif row.kategori == 'Sedang' %}badge-medium
+                            {% else %}badge-low
+                            {% endif %}
+                        ">
+                            {{ row.kategori }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{ years|json_script:"years-data" }}
+{{ yearly_avg|json_script:"yearly-data" }}
+{{ map_data|json_script:"map-data" }}
+
+<script>
+const years = JSON.parse(document.getElementById('years-data').textContent);
+const yearlyData = JSON.parse(document.getElementById('yearly-data').textContent);
+const mapData = JSON.parse(document.getElementById('map-data').textContent);
+
+/* CHART */
+new Chart(document.getElementById('yearChart'), {
+    type: 'line',
+    data: {
+        labels: years,
+        datasets: [{
+            label: 'Rata-rata per Tahun',
+            data: yearlyData,
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary'),
+            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-light'),
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        animation: { duration: 1500 }
+    }
+});
+
+/* MAP */
+const map = L.map('map').setView([-7.5, 112.5], 8);
+
+L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+).addTo(map);
+
+mapData.forEach((item, index) => {
+
+    let markerClass = "marker-low";
+    if(item.kategori === "Tinggi") markerClass = "marker-high";
+    if(item.kategori === "Sedang") markerClass = "marker-medium";
+
+    const lat = -7.5 + (index * 0.1);
+    const lng = 112.5 + (index * 0.1);
+
+    const marker = L.circleMarker([lat, lng], {
+        radius: 8,
+        className: markerClass
+    }).addTo(map);
+
+    marker.bindPopup(
+        "<b>" + item.wilayah + "</b><br>Nilai: " +
+        item.value + "<br>Kategori: " + item.kategori
+    );
+});
+</script>
+
+{% endblock %}

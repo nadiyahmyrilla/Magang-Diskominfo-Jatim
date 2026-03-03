@@ -1,76 +1,53 @@
 import os
 import pandas as pd
-from django.conf import settings
+from pathlib import Path
 
-FILE_PATH = os.path.join(
-    settings.BASE_DIR,
-    "analytics",
-    "data",
-    "Dataset_load.xlsx"
-)
+# Base directory project
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-# =========================
-# LOAD DATA
-# =========================
-def load_raw_data(sheet_name):
-    df = pd.read_excel(FILE_PATH, sheet_name=sheet_name)
-
-    # Paksa semua nama kolom menjadi string
-    df.columns = df.columns.map(str)
-
-    # Hapus kolom Unnamed jika ada
-    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-
-    return df
+# Path file Excel (pastikan nama file sesuai)
+DATA_PATH = BASE_DIR / "analytics" / "data" / "data.xlsx"
 
 
-# =========================
-# PREPROCESS TIME SERIES
-# =========================
-def preprocess_timeseries(df):
+def prepare_dataset(sheet_name=0):
     """
-    Mengubah data wide (2020–2024) menjadi long format
+    Membaca dataset Excel, membersihkan data,
+    mengambil kolom numerik, dan melakukan normalisasi Min-Max.
     """
-    id_col = df.columns[0]  # Kabupaten/Kota
-    year_cols = df.columns[1:]  # kolom tahun
 
-    df_long = df.melt(
-        id_vars=id_col,
-        value_vars=year_cols,
-        var_name="Tahun",
-        value_name="Nilai"
+    print("📂 Path File:", DATA_PATH)
+
+    # Cek apakah file ada
+    if not os.path.exists(DATA_PATH):
+        print("❌ FILE TIDAK DITEMUKAN!")
+        return pd.DataFrame(), pd.DataFrame()
+
+    # Baca file Excel
+    df = pd.read_excel(DATA_PATH, sheet_name=sheet_name)
+
+    print("✅ File berhasil dibaca")
+    print("Kolom:", df.columns)
+    print("Jumlah data:", len(df))
+
+    # Bersihkan nama kolom (hapus spasi depan/belakang)
+    df.columns = df.columns.str.strip()
+
+    # Hapus baris kosong
+    df = df.dropna()
+
+    # Ambil kolom numerik saja (untuk KNN)
+    df_numeric = df.select_dtypes(include="number")
+
+    if df_numeric.empty:
+        print("⚠️ Tidak ada kolom numerik ditemukan!")
+        return df, pd.DataFrame()
+
+    # Normalisasi Min-Max
+    df_norm = (df_numeric - df_numeric.min()) / (
+        df_numeric.max() - df_numeric.min()
     )
 
-    # Bersihkan angka (koma -> titik)
-    df_long["Nilai"] = (
-        df_long["Nilai"]
-        .astype(str)
-        .str.replace(",", ".", regex=False)
-        .astype(float)
-    )
+    print("✅ Normalisasi selesai")
+    print("Kolom numerik:", df_numeric.columns)
 
-    df_long["Tahun"] = df_long["Tahun"].astype(int)
-
-    return df_long.dropna()
-
-
-# =========================
-# NORMALISASI
-# =========================
-def min_max_normalization(df):
-    min_val = df["Nilai"].min()
-    max_val = df["Nilai"].max()
-
-    df["Nilai_Normalisasi"] = (df["Nilai"] - min_val) / (max_val - min_val)
-    return df
-
-
-# =========================
-# PIPELINE UTAMA
-# =========================
-def prepare_dataset(sheet_name):
-    df_raw = load_raw_data(sheet_name)
-    df_clean = preprocess_timeseries(df_raw)
-    df_norm = min_max_normalization(df_clean)
-
-    return df_clean, df_norm
+    return df, df_norm
