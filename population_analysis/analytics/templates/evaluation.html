@@ -8,6 +8,13 @@
 
 <h2 class="page-title">Evaluasi Model KNN</h2>
 
+{% if error %}
+<div class="card" style="margin-bottom: 20px;">
+    <h4>Data Belum Siap</h4>
+    <p>{{ error }}</p>
+</div>
+{% endif %}
+
 <!-- ================= METRICS ================= -->
 <div class="grid-4">
 
@@ -44,6 +51,7 @@
 <!-- ================= FORM 1 ================= -->
 <div class="card">
     <h3>Simulasi Cepat (1 Nilai)</h3>
+    <p>Masukkan rentang 0-100 untuk simulasi cepat klasifikasi Rendah, Sedang, atau Tinggi.</p>
 
     <form method="POST" class="modern-form">
         {% csrf_token %}
