@@ -69,7 +69,7 @@
     {% endif %}
 </div>
 
-<hr style="margin:50px 0;">
+<hr>
 
 <!-- ================= FORM 7 ================= -->
 <div class="card">
@@ -117,13 +117,20 @@ new Chart(document.getElementById('kChart'), {
         datasets: [{
             label: 'Accuracy (%)',
             data: kData,
-            borderRadius: 8
+            backgroundColor: 'rgba(42,82,152,0.75)',
+            hoverBackgroundColor: '#1e3c72',
+            borderRadius: 8,
+            borderSkipped: false
         }]
     },
     options: {
         responsive: true,
+        plugins: {
+            legend: { labels: { font: { family: 'Inter, Segoe UI, sans-serif', size: 12 } } }
+        },
         scales: {
-            y: { beginAtZero: true, max: 100 }
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, max: 100, grid: { color: '#edf2fa' } }
         }
     }
 });

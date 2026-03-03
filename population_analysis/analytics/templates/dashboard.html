@@ -118,8 +118,12 @@ new Chart(document.getElementById('yearChart'), {
         datasets: [{
             label: 'Rata-rata per Tahun',
             data: yearlyData,
-            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary'),
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-light'),
+            borderColor: '#1e3c72',
+            backgroundColor: 'rgba(42,82,152,0.12)',
+            pointBackgroundColor: '#2a5298',
+            pointBorderColor: '#fff',
+            pointRadius: 5,
+            pointHoverRadius: 7,
             borderWidth: 3,
             tension: 0.4,
             fill: true
@@ -127,7 +131,14 @@ new Chart(document.getElementById('yearChart'), {
     },
     options: {
         responsive: true,
-        animation: { duration: 1500 }
+        animation: { duration: 1200 },
+        plugins: {
+            legend: { labels: { font: { family: 'Inter, Segoe UI, sans-serif', size: 12 } } }
+        },
+        scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: '#edf2fa' } }
+        }
     }
 });
 
@@ -154,14 +165,10 @@ function normalizeNameWithoutPrefix(value) {
 }
 
 function colorByKategori(kategori) {
-    const rootStyle = getComputedStyle(document.documentElement);
-    const primaryColor = rootStyle.getPropertyValue('--primary').trim() || '#6d28d9';
-    const primaryLight = rootStyle.getPropertyValue('--primary-light').trim() || 'rgba(109,40,217,0.15)';
-
-    if (kategori === 'Tinggi') return primaryColor;
-    if (kategori === 'Sedang') return primaryLight;
-    if (kategori === 'Rendah') return primaryLight;
-    return primaryLight;
+    if (kategori === 'Tinggi')  return '#dc2626';
+    if (kategori === 'Sedang')  return '#d97706';
+    if (kategori === 'Rendah')  return '#16a34a';
+    return '#7a8a9e';
 }
 
 async function drawRegionBoundaries() {
@@ -182,9 +189,9 @@ async function drawRegionBoundaries() {
                 const info = mapLookup[key] || mapLookup[altKey] || null;
 
                 return {
-                    color: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+                    color: '#1a3a5c',
                     weight: 1.5,
-                    fillOpacity: 0.45,
+                    fillOpacity: 0.4,
                     fillColor: colorByKategori(info ? info.kategori : null)
                 };
             },
@@ -219,21 +226,22 @@ async function drawRegionBoundaries() {
         map.fitBounds(layer.getBounds(), { padding: [20, 20] });
     } catch (error) {
         mapData.forEach((item, index) => {
-            let markerClass = 'marker-low';
-            if(item.kategori === 'Tinggi') markerClass = 'marker-high';
-            if(item.kategori === 'Sedang') markerClass = 'marker-medium';
-
             const lat = item.lat ?? (-7.5 + (index * 0.1));
             const lng = item.lng ?? (112.5 + (index * 0.1));
+            const fillColor = colorByKategori(item.kategori);
 
             const marker = L.circleMarker([lat, lng], {
-                radius: 8,
-                className: markerClass
+                radius: 9,
+                fillColor: fillColor,
+                color: '#1a3a5c',
+                weight: 2,
+                fillOpacity: 0.8
             }).addTo(map);
 
-            marker.bindPopup(
+            marker.bindTooltip(
                 '<b>' + item.wilayah + '</b><br>Nilai: ' +
-                item.value + '<br>Kategori: ' + item.kategori
+                item.value + '<br>Kategori: ' + item.kategori,
+                { sticky: true, direction: 'top' }
             );
         });
     }
