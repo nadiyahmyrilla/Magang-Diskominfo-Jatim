@@ -329,7 +329,15 @@ body {
             {{-- PORTAL SATA CHART --}}
             <div class="p-4 portal-box-soft">
                 <h5 class="mb-3">Portal SATA</h5>
-                <small class="text-muted d-block mb-3">{{ now()->format('d M Y') }}</small>
+                <small class="text-muted d-block mb-3">
+                    @if($rangeStart && $rangeEnd)
+                        {{ \Carbon\Carbon::parse($rangeStart)->format('d M Y') }} - {{ \Carbon\Carbon::parse($rangeEnd)->format('d M Y') }}
+                    @elseif(isset($tanggalTerbaru) && $tanggalTerbaru)
+                        {{ $tanggalTerbaru->format('d M Y') }}
+                    @else
+                        {{ now()->format('d M Y') }}
+                    @endif
+                </small>
                 <div style="flex:1; display:flex; align-items:stretch;">
                     <canvas id="portalSataChart" style="width:100%;height:100%;object-fit:contain;"></canvas>
                 </div>
@@ -338,7 +346,15 @@ body {
             {{-- KEPUASAN PENGUNJUNG CHART --}}
             <div class="p-4 kepuasan-box-soft">
                 <h5 class="mb-3">Kepuasan Pengunjung</h5>
-                <small class="text-muted d-block mb-3">{{ now()->format('d M Y') }}</small>
+                <small class="text-muted d-block mb-3">
+                    @if($rangeStart && $rangeEnd)
+                        {{ \Carbon\Carbon::parse($rangeStart)->format('d M Y') }} - {{ \Carbon\Carbon::parse($rangeEnd)->format('d M Y') }}
+                    @elseif(isset($tanggalTerbaru) && $tanggalTerbaru)
+                        {{ $tanggalTerbaru->format('d M Y') }}
+                    @else
+                        {{ now()->format('d M Y') }}
+                    @endif
+                </small>
                 <div style="flex:1; display:flex; align-items:stretch;">
                     <canvas id="kepuasanChart" style="width:100%;height:100%;"></canvas>
                 </div>
