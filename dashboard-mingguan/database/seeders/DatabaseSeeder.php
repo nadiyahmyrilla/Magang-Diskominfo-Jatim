@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create Admin User
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'admin@dashboard.com'],
             [
                 'name' => 'Administrator',
@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // Create Regular User
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'user@dashboard.com'],
             [
                 'name' => 'Regular User',
