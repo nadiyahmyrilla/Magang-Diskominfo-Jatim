@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Clustering Kesehatan Masyarakat Jawa Timur</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --primary: #7a0a2e;
+            --secondary: #ee6983;
+            --accent: #ffc4c4;
+            --bg: #fff5e4;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --glass-strong: rgba(255, 255, 255, 0.72);
+            --text-dark: #2d2d2d;
+            --text-muted: #7c7c8a;
+            --shadow: 0 8px 32px rgba(133, 14, 53, 0.06);
+            --shadow-hover: 0 12px 40px rgba(133, 14, 53, 0.12);
+            --radius: 20px;
+            --radius-sm: 14px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(238, 105, 131, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(122, 10, 46, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ========== HEADER ========== */
+        .dashboard-header{
+            background:linear-gradient(135deg,#7a0a2e 0%,#9b2448 40%,#ae6b7c 100%);
+            padding:50px 60px 70px 50px;
+            color:white;
+            box-shadow:0 8px 32px rgba(133,14,53,0.12);
+            position:relative;
+            z-index:1;
+            border-bottom-left-radius:32px;
+            border-bottom-right-radius:32px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+            font-weight: 750;
+            letter-spacing: -0.6px;
+        }
+
+        .dashboard-header p {
+            font-size: 0.85rem;
+            opacity: 0.75;
+            margin-top: 8px;
+            font-weight: 300;
+            letter-spacing: 0.2px;
+        }
+
+        .dashboard-container::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            border-radius:26px;
+
+            background: linear-gradient(
+                135deg,
+                rgba(255,255,255,0.35),
+                rgba(255,255,255,0.05)
+            );
+
+            pointer-events:none;
+        }
+
+        .dashboard-container {
+            max-width: 1440px;
+            margin: -40px auto 60px auto; /* membuat container naik ke header */
+            padding: 40px 40px 60px;
+
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+
+            border-radius: 26px;
+
+            border: 1px solid rgba(238, 105, 131, 0.35);
+
+            box-shadow:
+                0 20px 60px rgba(133, 14, 53, 0.08),
+                0 6px 20px rgba(0,0,0,0.04);
+
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ========== ERROR ========== */
+        .error-banner {
+            background: rgba(220, 38, 38, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: white;
+            padding: 20px 28px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 24px;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .error-banner strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        /* ========== GLASS CARD ========== */
+        .card {
+            background: rgba(255, 255, 255, 0.60);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            border-radius: 22px;
+
+            border: 1px solid rgba(238, 105, 131, 0.28);
+
+            box-shadow:
+                0 6px 20px rgba(0,0,0,0.04),
+                0 2px 8px rgba(0,0,0,0.03);
+            overflow: hidden;
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), backdrop-filter var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(238, 105, 131, 0.12);
+            border-color: rgba(238, 105, 131, 0.55);
+            backdrop-filter: blur(24px);
+        }
+
+        .card-header {
+            padding: 22px 28px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .card-header h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2d2d2d;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .card-body {
+            padding: 18px 28px 28px;
+        }
+
+        .card-full {
+            grid-column: 1 / -1;
+        }
+
+        /* ========== STAT CARDS ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.45) 100%);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: var(--radius);
+            padding: 26px 24px;
+            border: 1.2px solid rgba(238, 105, 131, 0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), backdrop-filter var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 28px rgba(238, 105, 131, 0.12);
+            border-color: rgba(238, 105, 131, 0.55);
+            backdrop-filter: blur(22px);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card:nth-child(1)::after { background: linear-gradient(90deg, #7a0a2e, #9b2448); }
+        .stat-card:nth-child(2)::after { background: linear-gradient(90deg, #ee6983, #f08ca0); }
+        .stat-card:nth-child(3)::after { background: linear-gradient(90deg, #ffc4c4, #ffd4d9); }
+        .stat-card:nth-child(4)::after { background: linear-gradient(90deg, #7a0a2e, #ee6983); }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            font-size: 1.2rem;
+        }
+
+        .stat-card:nth-child(1) .stat-icon { background: linear-gradient(135deg, rgba(122, 10, 46, 0.15), rgba(122, 10, 46, 0.08)); color: #7a0a2e; }
+        .stat-card:nth-child(2) .stat-icon { background: linear-gradient(135deg, rgba(238, 105, 131, 0.18), rgba(238, 105, 131, 0.10)); color: #ee6983; }
+        .stat-card:nth-child(3) .stat-icon { background: linear-gradient(135deg, rgba(255, 196, 196, 0.4), rgba(255, 196, 196, 0.25)); color: #7a0a2e; }
+        .stat-card:nth-child(4) .stat-icon { background: linear-gradient(135deg, rgba(122, 10, 46, 0.15), rgba(238, 105, 131, 0.10)); color: #7a0a2e; }
+
+        .stat-label {
+            font-size: 0.70rem;
+            text-transform: uppercase;
+            letter-spacing: 0.95px;
+            color: #8a8a99;
+            font-weight: 650;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #2d2d2d;
+            line-height: 1.1;
+        }
+
+        /* ========== GRIDS ========== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        /* ========== MAP ========== */
+        #map {
+            height: 480px;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            z-index: 1;
+        }
+
+        .map-legend {
+            padding: 14px 28px 20px;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.5));
+            backdrop-filter: blur(8px);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.80rem;
+            font-weight: 550;
+            color: #5a5a68;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ========== FILTERS ========== */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 9px 20px;
+            border: 1.4px solid rgba(238, 105, 131, 0.45);
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.45));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 550;
+            color: #2d2d2d;
+            cursor: pointer;
+            outline: none;
+            transition: all var(--transition);
+            text-align: center;
+            text-align-last: center;
+            -moz-text-align-last: center;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a8a99' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 34px;
+        }
+
+        .filter-select:hover {
+            border-color: rgba(238, 105, 131, 0.65);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.55));
+        }
+
+        .filter-select:focus {
+            border-color: #ee6983;
+            box-shadow: 0 0 0 3px rgba(238, 105, 131, 0.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.62));
+        }
+
+        .search-input {
+            padding: 9px 20px;
+            border: 1.4px solid rgba(238, 105, 131, 0.45);
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.45));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            width: 240px;
+            outline: none;
+            transition: all var(--transition);
+            text-align: center;
+            color: #2d2d2d;
+        }
+
+        .search-input::placeholder {
+            color: #9a9ab0;
+            font-weight: 400;
+        }
+
+        .search-input:hover {
+            border-color: rgba(238, 105, 131, 0.65);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.55));
+        }
+
+        .search-input:focus {
+            border-color: #ee6983;
+            box-shadow: 0 0 0 3px rgba(238, 105, 131, 0.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.62));
+        }
+
+        /* ========== TABLE ========== */
+        .table-container {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: var(--radius-sm);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        thead th {
+            background: linear-gradient(135deg, #7a0a2e 0%, #9b2448 60%, #b8345a 100%);
+            color: var(--white);
+            padding: 14px 16px;
+            text-align: center;
+            font-weight: 620;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        thead th:first-child { border-radius: 12px 0 0 0; }
+        thead th:last-child { border-radius: 0 12px 0 0; }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(238, 105, 131, 0.2);
+            transition: all var(--transition);
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(90deg, rgba(238, 105, 131, 0.07), rgba(238, 105, 131, 0.03));
+        }
+
+        tbody td {
+            padding: 13px 16px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        tbody td:nth-child(2) {
+            text-align: left;
+        }
+
+        /* ========== BADGE ========== */
+        .badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.70rem;
+            font-weight: 720;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-tinggi {
+            background: linear-gradient(135deg, rgba(122, 10, 46, 0.15), rgba(122, 10, 46, 0.10));
+            color: #7a0a2e;
+            border: 1px solid rgba(122, 10, 46, 0.25);
+        }
+
+        .badge-sedang {
+            background: linear-gradient(135deg, rgba(238, 105, 131, 0.15), rgba(238, 105, 131, 0.10));
+            color: #b83855;
+            border: 1px solid rgba(238, 105, 131, 0.25);
+        }
+
+        .badge-rendah {
+            background: linear-gradient(135deg, rgba(31, 166, 87, 0.13), rgba(31, 166, 87, 0.08));
+            color: #1fa657;
+            border: 1px solid rgba(31, 166, 87, 0.22);
+        }
+
+        /* ========== CLUSTER CARDS ========== */
+        .cluster-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .cluster-card {
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            text-align: center;
+            color: var(--white);
+            transition: transform var(--transition), box-shadow var(--transition), backdrop-filter var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+        }
+
+        .cluster-card::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -25%;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .cluster-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+        }
+
+        .cluster-card.tinggi {
+            background: linear-gradient(135deg, #7a0a2e 0%, #9b2448 50%, #b8345a 100%);
+        }
+
+        .cluster-card.sedang {
+            background: linear-gradient(135deg, #e85e76 0%, #f08ca0 50%, #f29eab 100%);
+        }
+
+        .cluster-card.rendah {
+            background: linear-gradient(135deg, #1fa657 0%, #22c55e 50%, #4ade80 100%);
+        }
+
+        .cluster-card h4 {
+            font-size: 0.78rem;
+            opacity: 0.85;
+            margin-bottom: 10px;
+            font-weight: 610;
+            text-transform: uppercase;
+            letter-spacing: 1.1px;
+        }
+
+        .cluster-card .cluster-count {
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .cluster-card .cluster-sub {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            font-weight: 400;
+        }
+
+        .cluster-card .cluster-detail {
+            margin-top: 14px;
+            font-size: 0.76rem;
+            opacity: 0.8;
+            line-height: 1.7;
+        }
+
+        /* ========== CHARTS ========== */
+        .chart-wrapper {
+            position: relative;
+            height: 320px;
+        }
+
+        .chart-wrapper-sm {
+            position: relative;
+            height: 260px;
+        }
+
+        /* ========== KABUPATEN TAGS ========== */
+        .kab-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 3px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 550;
+            transition: all var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .kab-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .kab-tag-tinggi { background: linear-gradient(135deg, rgba(122,10,46,0.08), rgba(122,10,46,0.05)); color: #7a0a2e; border-color: rgba(122,10,46,0.2); }
+        .kab-tag-sedang { background: linear-gradient(135deg, rgba(238,105,131,0.10), rgba(238,105,131,0.06)); color: #b83855; border-color: rgba(238,105,131,0.2); }
+        .kab-tag-rendah { background: linear-gradient(135deg, rgba(31,166,87,0.08), rgba(31,166,87,0.04)); color: #1fa657; border-color: rgba(31,166,87,0.18); }
+
+        /* ========== LEAFLET TOOLTIP ========== */
+        .leaflet-tooltip-custom {
+            background: rgba(255, 255, 255, 0.52) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            border: 1.3px solid rgba(238, 105, 131, 0.5) !important;
+            border-radius: 13px !important;
+            padding: 12px 16px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.80rem !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+            color: #2d2d2d !important;
+        }
+
+        .leaflet-tooltip-custom::before {
+            border-top-color: rgba(238, 105, 131, 0.5) !important;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .cluster-cards { grid-template-columns: 1fr; }
+            .dashboard-container { padding: 0 20px 40px; }
+            .dashboard-header { padding: 32px 20px 28px; }
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .search-input { width: 100%; }
+            .dashboard-header h1 { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <h1>Dashboard Kesehatan Masyarakat Jawa Timur</h1>
+        <p>Analisis Clustering Kondisi Kesehatan & Jaminan Kesehatan per Kabupaten/Kota</p>
+    </div>
+    
+    <div class="dashboard-container">
+
+        {% if error_message %}
+        <div class="error-banner">
+            <strong>Terjadi Kesalahan pada Analisis</strong>
+            {{ error_message }}
+        </div>
+        {% endif %}
+
+        {% if data %}
+
+        <!-- STAT CARDS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="stat-label">Total Kabupaten/Kota</div>
+                <div class="stat-value">{{ total_stats.total_kabupaten }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <div class="stat-label">Total Kasus Diabetes</div>
+                <div class="stat-value" id="stat-diabetes">{{ total_stats.total_diabetes }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <div class="stat-label">Total Kasus Hipertensi</div>
+                <div class="stat-value" id="stat-hipertensi">{{ total_stats.total_hipertensi }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </div>
+                <div class="stat-label">Grand Total Kasus</div>
+                <div class="stat-value" id="stat-grand">{{ total_stats.total_grand }}</div>
+            </div>
+        </div>
+
+        <!-- CLUSTER SUMMARY -->
+        <div class="cluster-cards" style="margin-bottom: 24px;">
+            {% for cs in cluster_summary %}
+            <div class="cluster-card {% if cs.label == 'Tinggi' %}tinggi{% elif cs.label == 'Sedang' %}sedang{% else %}rendah{% endif %}">
+                <h4>Cluster {{ cs.label }}</h4>
+                <div class="cluster-count">{{ cs.count }}</div>
+                <div class="cluster-sub">Kabupaten/Kota</div>
+                <div class="cluster-detail">
+                    Rata-rata Diabetes: {{ cs.avg_diabetes|floatformat:0 }}<br>
+                    Rata-rata Hipertensi: {{ cs.avg_hipertensi|floatformat:0 }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- PETA -->
+        <div class="grid-2">
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h3>Peta Clustering Kabupaten/Kota Jawa Timur</h3>
+                    <div class="filter-bar">
+                        <select id="filterTahunMap" class="filter-select" onchange="filterMap()">
+                            {% for t in tahun_list %}
+                            <option value="{{ t }}" {% if t == selected_tahun %}selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                        <select id="filterClusterMap" class="filter-select" onchange="filterMap()">
+                            <option value="semua">Semua Cluster</option>
+                            <option value="Rendah">Rendah</option>
+                            <option value="Sedang">Sedang</option>
+                            <option value="Tinggi">Tinggi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="map-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #22c55e;"></div>
+                        <span>Rendah</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--secondary);"></div>
+                        <span>Sedang</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--primary);"></div>
+                        <span>Tinggi</span>
+                    </div>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- CHARTS ROW -->
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Distribusi Cluster</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-wrapper-sm">
+                        <canvas id="chartCluster"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Rata-rata Jaminan Kesehatan (%)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-wrapper-sm">
+                        <canvas id="chartAsuransi"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Top 15 Kasus Diabetes</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-wrapper">
+                        <canvas id="chartDiabetes"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Top 15 Kasus Hipertensi</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-wrapper">
+                        <canvas id="chartHipertensi"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERBANDINGAN -->
+        <div class="grid-2" style="margin-bottom: 24px;">
+            <div class="card card-full">
+                <div class="card-header">
+                    <h3>Perbandingan Diabetes vs Hipertensi per Kabupaten/Kota</h3>
+                </div>
+                <div class="card-body">
+                    <div style="height: 380px; position: relative;">
+                        <canvas id="chartComparison"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL DATA -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3>Data Lengkap Clustering ({{ selected_tahun }})</h3>
+                <div class="filter-bar">
+                    <input type="text" id="searchTable" class="search-input" placeholder="Cari kabupaten/kota..." onkeyup="filterTable()">
+                    <select id="filterCluster" class="filter-select" onchange="filterTable()">
+                        <option value="semua">Semua Cluster</option>
+                        <option value="Rendah">Rendah</option>
+                        <option value="Sedang">Sedang</option>
+                        <option value="Tinggi">Tinggi</option>
+                    </select>
+                    <select id="filterTahunTable" class="filter-select" onchange="changeTahun(this.value)">
+                        {% for t in tahun_list %}
+                        <option value="{{ t }}" {% if t == selected_tahun %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Kabupaten/Kota</th>
+                                <th>BPJS PBI (%)</th>
+                                <th>BPJS Non-PBI (%)</th>
+                                <th>Jamkesda (%)</th>
+                                <th>Asuransi Swasta (%)</th>
+                                <th>Jaminan Perusahaan (%)</th>
+                                <th>Diabetes</th>
+                                <th>Hipertensi</th>
+                                <th>Grand Total</th>
+                                <th>Cluster</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in data %}
+                            <tr data-cluster="{{ row.cluster_label }}" data-kabupaten="{{ row.nama_kabupaten_kota|lower }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td><strong>{{ row.nama_kabupaten_kota }}</strong></td>
+                                <td>{{ row.bpjs_pbi }}</td>
+                                <td>{{ row.bpjs_non_pbi }}</td>
+                                <td>{{ row.jamkesda }}</td>
+                                <td>{{ row.asuransi_swasta }}</td>
+                                <td>{{ row.jaminan_perusahaan }}</td>
+                                <td>{{ row.diabetes }}</td>
+                                <td>{{ row.hipertensi }}</td>
+                                <td>{{ row.grand_total }}</td>
+                                <td>
+                                    <span class="badge badge-{{ row.cluster_label|lower }}">
+                                        {{ row.cluster_label }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAFTAR KABUPATEN PER CLUSTER -->
+        <div class="grid-3">
+            {% for cs in cluster_summary %}
+            <div class="card">
+                <div class="card-header">
+                    <h3>Cluster {{ cs.label }} ({{ cs.count }})</h3>
+                    <span class="badge badge-{{ cs.label|lower }}">{{ cs.label }}</span>
+                </div>
+                <div class="card-body">
+                    <div style="line-height: 2.2;">
+                        {% for kab in cs.kabupaten %}
+                        <span class="kab-tag kab-tag-{{ cs.label|lower }}">{{ kab }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+            {% if not error_message %}
+            <div class="card" style="padding: 60px; text-align: center;">
+                <h3 style="color: var(--text-muted);">Tidak ada data untuk ditampilkan</h3>
+                <p style="color: var(--text-muted); margin-top: 8px;">Pastikan file data tersedia dan format sesuai.</p>
+            </div>
+            {% endif %}
+        {% endif %}
+
+    </div>
+
+    {% if data %}
+    <script>
+        // === DATA ===
+        const petaDataPerTahun = {{ peta_data_per_tahun_json|safe }};
+        const clusterDist = {{ cluster_distribution_json|safe }};
+        const chartDiabetesData = {{ chart_diabetes_json|safe }};
+        const chartHipertensiData = {{ chart_hipertensi_json|safe }};
+        const chartAsuransiData = {{ chart_asuransi_json|safe }};
+        const allData = [
+            {% for row in data %}
+            {
+                nama: "{{ row.nama_kabupaten_kota }}",
+                diabetes: {{ row.diabetes }},
+                hipertensi: {{ row.hipertensi }},
+                grand_total: {{ row.grand_total }},
+                cluster_label: "{{ row.cluster_label }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        // === FORMAT NUMBERS ===
+        function formatNumber(n) {
+            return new Intl.NumberFormat('id-ID').format(n);
+        }
+
+        document.getElementById('stat-diabetes').textContent = formatNumber({{ total_stats.total_diabetes }});
+        document.getElementById('stat-hipertensi').textContent = formatNumber({{ total_stats.total_hipertensi }});
+        document.getElementById('stat-grand').textContent = formatNumber({{ total_stats.total_grand }});
+
+        // === CHART COLORS ===
+        const colors = {
+            primary: '#850e35',
+            secondary: '#ee6983',
+            accent: '#ffc4c4',
+            bg: '#fff5e4',
+            rendah: '#22c55e',
+            sedang: '#ee6983',
+            tinggi: '#850e35'
+        };
+
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+        // === DISTRIBUSI CLUSTER (Doughnut) ===
+        new Chart(document.getElementById('chartCluster'), {
+            type: 'doughnut',
+            data: {
+                labels: clusterDist.labels,
+                datasets: [{
+                    data: clusterDist.values,
+                    backgroundColor: clusterDist.labels.map(l => {
+                        if (l === 'Tinggi') return colors.tinggi;
+                        if (l === 'Sedang') return colors.sedang;
+                        return colors.rendah;
+                    }),
+                    borderWidth: 3,
+                    borderColor: 'rgba(255,255,255,0.7)',
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 18, font: { size: 12, weight: '500' } }
+                    }
+                }
+            }
+        });
+
+        // === RATA-RATA ASURANSI (Radar) ===
+        const asuransiLabels = {
+            'bpjs_pbi': 'BPJS PBI',
+            'bpjs_non_pbi': 'BPJS Non-PBI',
+            'jamkesda': 'Jamkesda',
+            'asuransi_swasta': 'Asuransi Swasta',
+            'jaminan_perusahaan': 'Jaminan Perusahaan'
+        };
+
+        {% if total_stats.asuransi_avg %}
+        const asuransiAvg = {
+            {% for key, val in total_stats.asuransi_avg.items %}
+            '{{ key }}': {{ val }},
+            {% endfor %}
+        };
+
+        const radarLabels = Object.keys(asuransiAvg).map(k => asuransiLabels[k] || k);
+        const radarValues = Object.values(asuransiAvg);
+
+        new Chart(document.getElementById('chartAsuransi'), {
+            type: 'radar',
+            data: {
+                labels: radarLabels,
+                datasets: [{
+                    label: 'Rata-rata (%)',
+                    data: radarValues,
+                    backgroundColor: 'rgba(238, 105, 131, 0.12)',
+                    borderColor: colors.secondary,
+                    borderWidth: 2,
+                    pointBackgroundColor: colors.primary,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        ticks: { font: { size: 10 }, backdropColor: 'transparent' },
+                        pointLabels: { font: { size: 10, weight: '500' } },
+                        grid: { color: 'rgba(133, 14, 53, 0.06)' },
+                        angleLines: { color: 'rgba(133, 14, 53, 0.06)' }
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // === TOP 15 DIABETES ===
+        new Chart(document.getElementById('chartDiabetes'), {
+            type: 'bar',
+            data: {
+                labels: chartDiabetesData.labels,
+                datasets: [{
+                    label: 'Kasus Diabetes',
+                    data: chartDiabetesData.values,
+                    backgroundColor: 'rgba(133, 14, 53, 0.65)',
+                    hoverBackgroundColor: 'rgba(133, 14, 53, 0.85)',
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(45,45,45,0.9)',
+                        cornerRadius: 10,
+                        padding: 12,
+                        callbacks: { label: ctx => formatNumber(ctx.raw) + ' kasus' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { callback: v => formatNumber(v), font: { size: 10 } },
+                        grid: { color: 'rgba(0,0,0,0.03)' }
+                    },
+                    y: {
+                        ticks: { font: { size: 11, weight: '500' } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // === TOP 15 HIPERTENSI ===
+        new Chart(document.getElementById('chartHipertensi'), {
+            type: 'bar',
+            data: {
+                labels: chartHipertensiData.labels,
+                datasets: [{
+                    label: 'Kasus Hipertensi',
+                    data: chartHipertensiData.values,
+                    backgroundColor: 'rgba(238, 105, 131, 0.6)',
+                    hoverBackgroundColor: 'rgba(238, 105, 131, 0.85)',
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(45,45,45,0.9)',
+                        cornerRadius: 10,
+                        padding: 12,
+                        callbacks: { label: ctx => formatNumber(ctx.raw) + ' kasus' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { callback: v => formatNumber(v), font: { size: 10 } },
+                        grid: { color: 'rgba(0,0,0,0.03)' }
+                    },
+                    y: {
+                        ticks: { font: { size: 11, weight: '500' } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // === COMPARISON CHART ===
+        const sortedData = [...allData].sort((a, b) => b.grand_total - a.grand_total).slice(0, 20);
+
+        new Chart(document.getElementById('chartComparison'), {
+            type: 'bar',
+            data: {
+                labels: sortedData.map(d => d.nama),
+                datasets: [
+                    {
+                        label: 'Diabetes',
+                        data: sortedData.map(d => d.diabetes),
+                        backgroundColor: 'rgba(133, 14, 53, 0.6)',
+                        hoverBackgroundColor: 'rgba(133, 14, 53, 0.85)',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Hipertensi',
+                        data: sortedData.map(d => d.hipertensi),
+                        backgroundColor: 'rgba(238, 105, 131, 0.55)',
+                        hoverBackgroundColor: 'rgba(238, 105, 131, 0.8)',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { size: 12, weight: '500' }, padding: 18 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(45,45,45,0.9)',
+                        cornerRadius: 10,
+                        padding: 12,
+                        callbacks: {
+                            label: ctx => ctx.dataset.label + ': ' + formatNumber(ctx.raw)
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 30 },
+                        grid: { display: false }
+                    },
+                    y: {
+                        ticks: { callback: v => formatNumber(v), font: { size: 10 } },
+                        grid: { color: 'rgba(0,0,0,0.03)' }
+                    }
+                }
+            }
+        });
+
+        // === TABLE FILTER ===
+        function filterTable() {
+            const search = document.getElementById('searchTable').value.toLowerCase();
+            const cluster = document.getElementById('filterCluster').value;
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+
+            rows.forEach(row => {
+                const kab = row.getAttribute('data-kabupaten');
+                const cl = row.getAttribute('data-cluster');
+                const matchSearch = kab.includes(search);
+                const matchCluster = cluster === 'semua' || cl === cluster;
+                row.style.display = (matchSearch && matchCluster) ? '' : 'none';
+            });
+        }
+
+        // === GANTI TAHUN ===
+        function changeTahun(tahun) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tahun', tahun);
+            window.location.href = url.toString();
+        }
+
+        // === LEAFLET MAP ===
+        const map = L.map('map').setView([-7.5, 112.5], 8);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            maxZoom: 13
+        }).addTo(map);
+
+        const koordinat = {
+            'Pacitan': [-8.19, 111.10],
+            'Ponorogo': [-7.87, 111.46],
+            'Trenggalek': [-8.05, 111.71],
+            'Tulungagung': [-8.07, 111.90],
+            'Blitar': [-8.08, 112.17],
+            'Kediri': [-7.82, 112.01],
+            'Malang': [-8.05, 112.63],
+            'Lumajang': [-8.13, 113.22],
+            'Jember': [-8.17, 113.70],
+            'Banyuwangi': [-8.22, 114.35],
+            'Bondowoso': [-7.91, 113.82],
+            'Situbondo': [-7.71, 114.00],
+            'Probolinggo': [-7.87, 113.22],
+            'Pasuruan': [-7.65, 112.91],
+            'Sidoarjo': [-7.46, 112.72],
+            'Mojokerto': [-7.47, 112.44],
+            'Jombang': [-7.56, 112.23],
+            'Nganjuk': [-7.60, 111.90],
+            'Madiun': [-7.63, 111.52],
+            'Magetan': [-7.65, 111.34],
+            'Ngawi': [-7.40, 111.45],
+            'Bojonegoro': [-7.15, 111.88],
+            'Tuban': [-6.90, 112.05],
+            'Lamongan': [-7.12, 112.42],
+            'Gresik': [-7.16, 112.65],
+            'Bangkalan': [-7.04, 112.94],
+            'Sampang': [-7.18, 113.25],
+            'Pamekasan': [-7.16, 113.47],
+            'Sumenep': [-7.02, 113.87],
+            'Kota Kediri': [-7.82, 112.02],
+            'Kota Blitar': [-8.10, 112.16],
+            'Kota Malang': [-7.98, 112.63],
+            'Kota Probolinggo': [-7.75, 113.22],
+            'Kota Pasuruan': [-7.65, 112.90],
+            'Kota Mojokerto': [-7.47, 112.43],
+            'Kota Madiun': [-7.63, 111.53],
+            'Kota Surabaya': [-7.26, 112.75],
+            'Kota Batu': [-7.87, 112.52]
+        };
+
+        let markers = [];
+
+        function getClusterColor(label) {
+            if (label === 'Tinggi') return '#850e35';
+            if (label === 'Sedang') return '#ee6983';
+            return '#22c55e';
+        }
+
+        function createMarkers(tahun, clusterFilter) {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            const petaData = petaDataPerTahun[tahun] || {};
+
+            Object.keys(petaData).forEach(kab => {
+                const info = petaData[kab];
+                const coord = koordinat[kab];
+
+                if (!coord) return;
+                if (clusterFilter !== 'semua' && info.cluster_label !== clusterFilter) return;
+
+                const color = getClusterColor(info.cluster_label);
+                const gt = info.grand_total;
+                const radiusBase = gt > 100 ? Math.sqrt(gt / 500) : Math.sqrt(gt * 500);
+
+                const marker = L.circleMarker(coord, {
+                    radius: Math.max(8, Math.min(20, radiusBase)),
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+
+                marker.bindTooltip(
+                    `<div style="text-align:center;">
+                        <strong>${kab}</strong><br>
+                        <span style="font-size:0.73rem;color:${colors.secondary};">Tahun ${tahun}</span><br>
+                        <span style="color:${color}; font-weight:700;">Cluster: ${info.cluster_label}</span><br>
+                        Diabetes: ${formatNumber(info.diabetes)}<br>
+                        Hipertensi: ${formatNumber(info.hipertensi)}<br>
+                        Total: ${formatNumber(info.grand_total)}
+                    </div>`,
+                    { className: 'leaflet-tooltip-custom' }
+                );
+
+                markers.push(marker);
+            });
+        }
+
+        const initTahun = document.getElementById('filterTahunMap').value;
+        createMarkers(initTahun, 'semua');
+
+        function filterMap() {
+            const tahun = document.getElementById('filterTahunMap').value;
+            const clusterFilter = document.getElementById('filterClusterMap').value;
+            createMarkers(tahun, clusterFilter);
+        }
+    </script>
+    {% endif %}
+
+</body>
+</html>
