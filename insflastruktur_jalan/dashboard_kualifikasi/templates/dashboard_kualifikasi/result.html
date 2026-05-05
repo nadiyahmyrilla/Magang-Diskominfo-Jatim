@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard Klasifikasi Infrastruktur</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dashboard_kualifikasi/styles.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <div class="header-top">
+          <h1 class="title">Selamat Pagi</h1>
+          <p class="subtitle">Dashboard Klasifikasi Infrastruktur Jalan Jawa Timur</p>
+        </div>
+        <div class="header-controls">
+          <div class="custom-dropdown">
+            <button class="dropdown-toggle" id="dropdownToggle" onclick="toggleDropdown()">
+              <span id="dropdownLabel">{% if view_mode == 'average' %}📈 Rata-Rata Semua Data{% else %}📊 Data Per Sheet{% endif %}</span>
+              <svg class="dropdown-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu">
+              <button class="dropdown-item" data-value="sheet" onclick="selectOption('sheet', '📊 Data Per Sheet')">📊 Data Per Sheet</button>
+              <button class="dropdown-item" data-value="average" onclick="selectOption('average', '📈 Rata-Rata Semua Data')">📈 Rata-Rata Semua Data</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {% if error %}
+      <section class="error-section">
+        <h2>⚠️ Terjadi Masalah</h2>
+        <p class="error-message">{{ error }}</p>
+        <p class="error-hint">Letakkan file Excel di folder data_excel dengan nama data.xlsx</p>
+      </section>
+      {% else %}
+
+      <nav class="sheet-tabs">
+        {% if view_mode == 'average' %}
+          <button class="tab active">📈 Rata-Rata Semua Data</button>
+        {% else %}
+          {% for sheet in sheets %}
+            {% if sheet == sheet_name %}
+              <button class="tab active">📊 {{ sheet }}</button>
+            {% else %}
+              <a href="?file={{ file_name }}&sheet={{ sheet }}&mode=sheet" class="tab">📊 {{ sheet }}</a>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </nav>
+
+      <section class="stat-cards">
+        <article class="stat-card card-primary">
+          <div class="stat-icon">📋</div>
+          <p class="stat-label">Total Tahun</p>
+          <p class="stat-value">{{ row_count }}</p>
+          <p class="stat-change">Dari {{ file_name }}</p>
+        </article>
+
+        <article class="stat-card card-good">
+          <div class="stat-icon">✓</div>
+          <p class="stat-label">Kategori Baik</p>
+          <p class="stat-value">{{ good_count }}</p>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: {% widthratio good_count row_count 100 %}%"></div>
+          </div>
+        </article>
+
+        <article class="stat-card card-medium">
+          <div class="stat-icon">⚡</div>
+          <p class="stat-label">Kategori Sedang</p>
+          <p class="stat-value">{{ medium_count }}</p>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: {% widthratio medium_count row_count 100 %}%"></div>
+          </div>
+        </article>
+
+        <article class="stat-card card-bad">
+          <div class="stat-icon">⚠</div>
+          <p class="stat-label">Kategori Buruk</p>
+          <p class="stat-value">{{ bad_count }}</p>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: {% widthratio bad_count row_count 100 %}%"></div>
+          </div>
+        </article>
+      </section>
+
+      <div class="main-grid">
+        <section class="card table-card">
+          <div class="card-header">
+            <div>
+              <h2>Hasil Klasifikasi per Tahun</h2>
+              <p class="card-subtitle">Skor rata-rata dan kategori untuk setiap tahun</p>
+            </div>
+            <div class="legend">
+              <span class="legend-item">
+                <span class="dot dot-good"></span>
+                <span>Baik</span>
+              </span>
+              <span class="legend-item">
+                <span class="dot dot-mid"></span>
+                <span>Sedang</span>
+              </span>
+              <span class="legend-item">
+                <span class="dot dot-low"></span>
+                <span>Buruk</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tahun</th>
+                  <th>Skor Rata-Rata</th>
+                  <th>Kategori</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in rows %}
+                <tr>
+                  <td>{{ row.0 }}</td>
+                  <td>{{ row.1 }}</td>
+                  <td>
+                    {% if row.2 == "Baik" %}
+                    <span class="badge badge-good">Baik</span>
+                    {% elif row.2 == "Sedang" %}
+                    <span class="badge badge-mid">Sedang</span>
+                    {% else %}
+                    <span class="badge badge-low">Buruk</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card chart-card">
+          <div class="card-header">
+            <h2>Tren Skor Tahunan</h2>
+            <p class="card-subtitle">Perbandingan skor antar tahun</p>
+          </div>
+
+          <div class="bar-chart">
+            {% for row in rows %}
+            <div class="bar-item">
+              <div class="bar-label">{{ row.0 }}</div>
+              <div class="bar-container">
+                <div class="bar-fill" style="width: {{ row.3 }}%;">
+                  <span class="bar-value">{{ row.3 }}%</span>
+                </div>
+              </div>
+              <div class="bar-category">
+                {% if row.2 == "Baik" %}
+                <span class="badge-small badge-good">Baik</span>
+                {% elif row.2 == "Sedang" %}
+                <span class="badge-small badge-mid">Sedang</span>
+                {% else %}
+                <span class="badge-small badge-low">Buruk</span>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+
+      {% endif %}
+    </div>
+
+    <script>
+      function toggleDropdown() {
+        const menu = document.getElementById('dropdownMenu');
+        menu.classList.toggle('active');
+      }
+
+      function selectOption(value, label) {
+        document.getElementById('dropdownLabel').textContent = label;
+        document.getElementById('dropdownMenu').classList.remove('active');
+        changeMode(value);
+      }
+
+      function changeMode(mode) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('mode', mode);
+        if (mode === 'sheet' && params.has('sheet')) {
+          // Keep existing sheet selection
+        } else {
+          params.delete('sheet');
+        }
+        window.location.search = params.toString();
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const dropdown = document.querySelector('.custom-dropdown');
+        if (dropdown && !dropdown.contains(event.target)) {
+          document.getElementById('dropdownMenu').classList.remove('active');
+        }
+      });
+    </script>
+  </body>
+</html>
