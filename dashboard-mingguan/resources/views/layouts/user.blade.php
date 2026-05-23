@@ -16,18 +16,19 @@
 </head>
 <body>
 
-<div class="container mt-4 px-3">
+<div class="container-fluid px-0">
 
     {{-- ================= NAVBAR ================= --}}
-    <div class="navbar-custom d-flex justify-content-between align-items-center mb-4 px-5">
+    <nav class="top-navbar d-flex justify-content-between align-items-center mb-4">
 
-        {{-- LEFT --}}
-        <div class="d-flex align-items-center gap-3">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo" height="70" style="transform:none;">
+        {{-- LEFT: Logo + Kominfo --}}
+        <div class="d-flex align-items-center gap-3 ps-4">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo" height="60" style="transform:none;">
+            <img src="{{ asset('images/kominfo.png') }}" alt="Kominfo" height="70" width="80">
         </div>
 
-        {{-- CENTER --}}
-        <nav class="top-navbar">
+        {{-- CENTER: Menu --}}
+        <div class="flex-grow-1">
             <ul class="nav-menu">
                 <li class="nav-item {{ request()->routeIs('home') ? 'active' : '' }}">
                     <a href="{{ route('home') }}">
@@ -84,16 +85,11 @@
                     </a>
                 </li>
             </ul>
-        </nav>
-
-        {{-- RIGHT --}}
-        <div class="d-flex align-items-center gap-3">
-            <div>
-                <img src="{{ asset('images/kominfo.png') }}" alt="Kominfo" height="80" width="90">
-            </div>
         </div>
 
-    </div>
+    </nav>
+
+    <div class="container mt-4 px-3">
 
     {{-- ================= CONTENT ================= --}}
     <div class="content-wrapper">

@@ -16,18 +16,19 @@
 </head>
 <body>
 
-<div class="container mt-4 px-3">
+<div class="container-fluid px-0">
 
     {{-- ================= NAVBAR ================= --}}
-    <div class="navbar-custom d-flex justify-content-between align-items-center mb-4 px-5">
+    <nav class="top-navbar d-flex justify-content-between align-items-center mb-4">
 
-        {{-- LEFT --}}
-        <div class="d-flex align-items-center gap-3">
+        {{-- LEFT: Logo + Kominfo --}}
+        <div class="d-flex align-items-center gap-3 ps-4">
             <img src="{{ asset('images/logo.png') }}" alt="Logo" height="60" style="transform:none;">
+            <img src="{{ asset('images/kominfo.png') }}" alt="Kominfo" height="70" width="80">
         </div>
 
-        {{-- CENTER --}}
-        <nav class="top-navbar">
+        {{-- CENTER: Menu --}}
+        <div class="flex-grow-1">
             <ul class="nav-menu">
                 <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <a href="{{ route('admin.dashboard') }}">
@@ -84,16 +85,11 @@
                     </a>
                 </li>
             </ul>
-        </nav>
+        </div>
 
-        {{-- RIGHT --}}
-        <div class="d-flex align-items-center gap-3">
-            <div>
-                <img src="{{ asset('images/kominfo.png') }}" alt="Kominfo" height="80" width="90">
-            </div>
-            
-            {{-- Logout Button (User/Admin Info) --}}
-            <div class="dropdown" style="margin-left: 20px;">
+        {{-- RIGHT: Logout Button --}}
+        <div class="d-flex align-items-center gap-3 pe-4">
+            <div class="dropdown">
                 <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="display: flex; align-items: center; gap: 8px;">
                     <i class="bi bi-person-circle"></i>
                     <span>{{ Auth::user()->name }}</span>
@@ -116,7 +112,9 @@
             </div>
         </div>
 
-    </div>
+    </nav>
+
+    <div class="container mt-4 px-3">
 
     {{-- ================= CONTENT ================= --}}
     <div class="content-wrapper">
