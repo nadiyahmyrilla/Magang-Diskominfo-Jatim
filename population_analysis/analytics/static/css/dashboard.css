@@ -228,6 +228,19 @@ tbody tr:last-child td:last-child  { border-radius: 0 0 var(--radius-sm) 0; }
 
 
 /* ===============================================
+   SOURCE TEXT
+   =============================================== */
+.source-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 10px;
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+
+
+/* ===============================================
    RESPONSIVE
    =============================================== */
 @media (max-width: 1000px) {

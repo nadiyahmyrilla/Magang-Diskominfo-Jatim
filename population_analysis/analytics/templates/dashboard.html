@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<h2 class="section-title">Dashboard Population Jawa Timur</h2>
+<h2 class="section-title">Dashboard Populasis Jawa Timur</h2>
 
 <!-- FILTER -->
 <div class="card filter-card">
@@ -53,6 +53,7 @@
     <div class="card">
         <div class="section-subtitle">Peta Wilayah Jawa Timur ({{ selected_year }})</div>
         <div id="map"></div>
+        <p class="source-text">Sumber: Peta dari maps dan hasil klasifikasi menggunakan KNN</p>
     </div>
 
     <div class="card">
@@ -64,6 +65,7 @@
 <!-- TABLE -->
 <div class="card">
     <div class="section-subtitle">Hasil Klasifikasi</div>
+    <p class="source-text">Sumber: BPS Jawa Timur dan hasil klasifikasi KNN</p>
     <div class="table-wrapper">
         <table>
             <thead>
