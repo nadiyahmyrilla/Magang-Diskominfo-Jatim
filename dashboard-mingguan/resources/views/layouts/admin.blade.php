@@ -33,31 +33,31 @@
                 <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <a href="{{ route('admin.dashboard') }}">
                         <i class="icon home"></i>
-                        <span>Dashboard Utama</span>
+                        <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('admin.layanan_konsultasi.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.layanan_konsultasi.index') }}">
                         <i class="icon edit"></i>
-                        <span>Layanan Konsultasi</span>
+                        <span>Konsultasi</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('admin.kepuasan_pengunjung.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.kepuasan_pengunjung.index') }}">
                         <i class="icon users"></i>
-                        <span>Kepuasan Pengunjung</span>
+                        <span>Survei</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('admin.penggunaan_data.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.penggunaan_data.index') }}">
                         <i class="icon data"></i>
-                        <span>Pengguna Data</span>
+                        <span>Pemakaian</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('admin.daftar_data.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.daftar_data.index') }}">
                         <i class="icon list"></i>
-                        <span>Daftar Data</span>
+                        <span>Dataset</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('admin.infografis.index') ? 'active' : '' }}">
@@ -69,19 +69,19 @@
                 <li class="nav-item {{ request()->routeIs('admin.portal_sata.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.portal_sata.index') }}">
                         <i class="icon monitor"></i>
-                        <span>Portal SATA</span>
+                        <span>SATA</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('admin.konten_tematik.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.konten_tematik.index') }}">
                         <i class="icon book"></i>
-                        <span>Konten Tematik</span>
+                        <span>Konten</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('admin.rekomendasi_statistik.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.rekomendasi_statistik.index') }}">
                         <i class="icon chart"></i>
-                        <span>Rekomendasi Statistik</span>
+                        <span>Rujukan</span>
                     </a>
                 </li>
             </ul>

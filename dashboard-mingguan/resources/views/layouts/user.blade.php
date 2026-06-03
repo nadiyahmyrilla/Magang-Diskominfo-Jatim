@@ -33,31 +33,31 @@
                 <li class="nav-item {{ request()->routeIs('home') ? 'active' : '' }}">
                     <a href="{{ route('home') }}">
                         <i class="icon home"></i>
-                        <span>Dashboard Utama</span>
+                        <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('user.layanan_konsultasi.index') ? 'active' : '' }}">
                     <a href="{{ route('user.layanan_konsultasi.index') }}">
                         <i class="icon edit"></i>
-                        <span>Layanan Konsultasi</span>
+                        <span>Konsultasi</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('user.kepuasan_pengunjung.index') ? 'active' : '' }}">
                     <a href="{{ route('user.kepuasan_pengunjung.index') }}">
                         <i class="icon users"></i>
-                        <span>Kepuasan Pengunjung</span>
+                        <span>Survei</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('user.penggunaan_data.index') ? 'active' : '' }}">
                     <a href="{{ route('user.penggunaan_data.index') }}">
                         <i class="icon data"></i>
-                        <span>Pengguna Data</span>
+                        <span>Pemakaian</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('user.daftar_data.index') ? 'active' : '' }}">
                     <a href="{{ route('user.daftar_data.index') }}">
                         <i class="icon list"></i>
-                        <span>Daftar Data</span>
+                        <span>Dataset</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('user.infografis.index') ? 'active' : '' }}">
@@ -69,19 +69,19 @@
                 <li class="nav-item {{ request()->routeIs('user.portal_sata.index') ? 'active' : '' }}">
                     <a href="{{ route('user.portal_sata.index') }}">
                         <i class="icon monitor"></i>
-                        <span>Portal SATA</span>
+                        <span>SATA</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('user.konten_tematik.index') ? 'active' : '' }}">
                     <a href="{{ route('user.konten_tematik.index') }}">
                         <i class="icon book"></i>
-                        <span>Konten Tematik</span>
+                        <span>Konten</span>
                     </a>
                 </li>
                 <li class="nav-item {{ request()->routeIs('user.rekomendasi_statistik.index') ? 'active' : '' }}">
                     <a href="{{ route('user.rekomendasi_statistik.index') }}">
                         <i class="icon chart"></i>
-                        <span>Rekomendasi Statistik</span>
+                        <span>Rujukan</span>
                     </a>
                 </li>
             </ul>

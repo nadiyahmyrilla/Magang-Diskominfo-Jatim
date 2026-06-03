@@ -198,10 +198,10 @@ body {
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
-    max-width: 0;
-    overflow: hidden;
-    transition: all .3s ease;
-    opacity: 0;
+    max-width: none;
+    overflow: visible;
+    transition: color .3s ease;
+    opacity: 1;
 }
 
 /* HOVER / ACTIVE */
@@ -214,12 +214,6 @@ body {
 .nav-item.active .icon {
     background: #2563eb;
     color: #fff;
-}
-
-.nav-item:hover span,
-.nav-item.active span {
-    max-width: 220px;
-    opacity: 1;
 }
 
 /* SIMPLE ICON SIMULATION */
