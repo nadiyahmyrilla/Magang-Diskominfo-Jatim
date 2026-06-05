@@ -30,18 +30,29 @@
   <section class="top-grid">
 
     <!-- KPI LEFT -->
-    <div class="kpi-left">
-      {% for kpi in kpi_data %}
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <small>{{ kpi.jenis }}</small>
-          <span class="badge">{{ kpi.keterangan }}</span>
-        </div>
-        <h2>{{ kpi.nilai }}</h2>
-        <p>vs tahun lalu</p>
-      </div>
-      {% endfor %}
+<div class="kpi-left">
+  {% for kpi in kpi_data %}
+  <div class="kpi-card">
+
+    <div class="kpi-header">
+      <small>{{ kpi.jenis }}</small>
     </div>
+
+    <div class="kpi-value">
+      {{ kpi.nilai }}
+    </div>
+
+    <h2 class="kpi-title">
+      {{ kpi.judul }}
+    </h2>
+
+    <p class="kpi-subtitle">
+      Total Nilai
+    </p>
+
+  </div>
+  {% endfor %}
+</div>
 
     <!-- RADAR RIGHT -->
     <div class="radar-card">
@@ -94,6 +105,25 @@
         </tr>
         {% endfor %}
       </table>
+
+      <!-- SUMBER DATA -->
+      <div class="source-box">
+        <h4>Sumber Data</h4>
+
+        <p>
+          Data berasal dari Badan Pusat Statistik Provinsi Jawa Timur:
+        </p>
+
+        <ul>
+          {% for item in sumber_data %}
+          <li>
+            <a href="{{ item.link }}" target="_blank">
+              {{ item.judul }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
 
     </div>
   </section>

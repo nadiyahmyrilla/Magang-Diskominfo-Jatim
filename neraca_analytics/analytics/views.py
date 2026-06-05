@@ -46,11 +46,15 @@ def index(request):
 
         for indikator in labels:
             total = next(
-                (r['total'] for r in rows
-                 if r['tahun'] == tahun
-                 and r['nama_indikator'] == indikator),
+                (
+                    r['total']
+                    for r in rows
+                    if r['tahun'] == tahun
+                    and r['nama_indikator'] == indikator
+                ),
                 0
             )
+
             data_per_tahun.append(float(total))
 
         datasets.append({
@@ -140,11 +144,15 @@ def index(request):
                     i.nama_indikator AS indikator,
                     w.tahun,
                     SUM(f.nilai) AS nilai
+
                 FROM fact_neraca_ekonomi f
+
                 JOIN dim_indikator i
                     ON f.id_indikator = i.id_indikator
+
                 JOIN dim_waktu w
                     ON f.id_waktu = w.id_waktu
+
                 GROUP BY i.nama_indikator, w.tahun
 
             ) base
@@ -165,7 +173,8 @@ def index(request):
             i.nama_indikator,
             SUM(f.nilai) AS total_nilai
         FROM fact_neraca_ekonomi f
-        JOIN dim_indikator i ON f.id_indikator = i.id_indikator
+        JOIN dim_indikator i
+            ON f.id_indikator = i.id_indikator
         GROUP BY i.nama_indikator
         ORDER BY total_nilai DESC
         LIMIT 4
@@ -178,8 +187,8 @@ def index(request):
     for row in kpi_rows:
         kpi_data.append({
             "jenis": "Indikator Utama",
-            "nilai": row["nama_indikator"],
-            "keterangan": f"Total Nilai: {row['total_nilai']:,.0f}"
+            "judul": row["nama_indikator"],
+            "nilai": f"{row['total_nilai']:,.0f}"
         })
 
     cursor.close()
@@ -196,7 +205,22 @@ def index(request):
         "line_data": json.dumps(line_data),
 
         "indikator_stabil": indikator_stabil,
-        "kpi_data": kpi_data
+        "kpi_data": kpi_data,
+
+        "sumber_data": [
+            {
+                "judul": "[Seri 2010][2] PDRB Menurut Pengeluaran Triwulanan (Miliar Rupiah), 2025",
+                "link": "https://jatim.bps.go.id/"
+            },
+            {
+                "judul": "[Seri 2010][2] Pertumbuhan Ekonomi Menurut Pengeluaran Triwulanan (Persen), 2021",
+                "link": "https://jatim.bps.go.id/"
+            },
+            {
+                "judul": "[Seri 2010][2] Indeks Implisit PDRB Menurut Pengeluaran Triwulanan, 2025",
+                "link": "https://jatim.bps.go.id/"
+            }
+        ]
     }
 
     return render(request, "analytics/index.html", context)
